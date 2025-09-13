@@ -1,0 +1,208 @@
+import { ArrowRight, ChevronLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+
+export default ({ items, loading = false, title = "", addNode }) => {
+
+    const [depth, setDepth] = useState(0)
+    const [action, setAction] = useState("inc")
+    const [parent, setParent] = useState()
+    const [selectedNav, setSelectedNav] = useState()
+    const [listItems, setListItems] = useState()
+
+    useEffect(() => {
+        setListItems(items)
+    }, [items])
+
+    const handleItemClick = (item) => {
+        if (item.children && item.children.length > 0) {
+            setAction("inc")
+            setParent(listItems)
+            setListItems(item.children)
+            setSelectedNav(item)
+            setDepth((prevValue) => prevValue + 1)
+        }
+
+        if(!item.children) {
+            addNode(item)
+        }
+    }
+
+    const onBackArrow = () => {
+        setAction("dec")
+        setDepth((prevValue) => prevValue - 1)
+    }
+
+    useEffect(() => {
+        if (action == "dec") {
+            if (depth == 0) {
+                setListItems(items)
+            } else {
+                setSelectedNav(selectedNav.parent)
+                setListItems(parent)
+            }
+        }
+    }, [depth])
+
+    if (loading) {
+
+        return <div className="relative">
+            <div>
+                <section>
+                    <div className="py-2">
+                        <div className="flex flex-col">
+                            <div className="rtl p-2 px-4 cursor-pointer">
+                                <div className="order-2 w-full flex items-center gap-2 md:order-none">
+                                    <div className="flex p-2 shrink-0 items-center justify-center rounded-md bg-gray-200 w-11 h-11">
+                                        <div className="w-7 h-7 animate-pulse bg-gray-200 rounded-md"></div>
+                                    </div>
+                                    <div className="flex  justify-between items-center w-full">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-4 w-24"></div>
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-3 w-16"></div>
+                                        </div>
+                                        <div className="animate-pulse bg-gray-200 rounded-full w-6 h-6"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="rtl p-2 px-4 cursor-pointer">
+                                <div className="order-2 w-full flex items-center gap-2 md:order-none">
+                                    <div className="flex p-2 shrink-0 items-center justify-center rounded-md bg-gray-200 w-11 h-11">
+                                        <div className="w-7 h-7 animate-pulse bg-gray-200 rounded-md"></div>
+                                    </div>
+                                    <div className="flex  justify-between items-center w-full">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-4 w-24"></div>
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-3 w-16"></div>
+                                        </div>
+                                        <div className="animate-pulse bg-gray-200 rounded-full w-6 h-6"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="rtl p-2 px-4 cursor-pointer">
+                                <div className="order-2 w-full flex items-center gap-2 md:order-none">
+                                    <div className="flex p-2 shrink-0 items-center justify-center rounded-md bg-gray-200 w-11 h-11">
+                                        <div className="w-7 h-7 animate-pulse bg-gray-200 rounded-md"></div>
+                                    </div>
+                                    <div className="flex  justify-between items-center w-full">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-4 w-24"></div>
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-3 w-16"></div>
+                                        </div>
+                                        <div className="animate-pulse bg-gray-200 rounded-full w-6 h-6"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="rtl p-2 px-4 cursor-pointer">
+                                <div className="order-2 w-full flex items-center gap-2 md:order-none">
+                                    <div className="flex p-2 shrink-0 items-center justify-center rounded-md bg-gray-200 w-11 h-11">
+                                        <div className="w-7 h-7 animate-pulse bg-gray-200 rounded-md"></div>
+                                    </div>
+                                    <div className="flex  justify-between items-center w-full">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-4 w-24"></div>
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-3 w-16"></div>
+                                        </div>
+                                        <div className="animate-pulse bg-gray-200 rounded-full w-6 h-6"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="rtl p-2 px-4 cursor-pointer">
+                                <div className="order-2 w-full flex items-center gap-2 md:order-none">
+                                    <div className="flex p-2 shrink-0 items-center justify-center rounded-md bg-gray-200 w-11 h-11">
+                                        <div className="w-7 h-7 animate-pulse bg-gray-200 rounded-md"></div>
+                                    </div>
+                                    <div className="flex  justify-between items-center w-full">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-4 w-24"></div>
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-3 w-16"></div>
+                                        </div>
+                                        <div className="animate-pulse bg-gray-200 rounded-full w-6 h-6"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="rtl p-2 px-4 cursor-pointer">
+                                <div className="order-2 w-full flex items-center gap-2 md:order-none">
+                                    <div className="flex p-2 shrink-0 items-center justify-center rounded-md bg-gray-200 w-11 h-11">
+                                        <div className="w-7 h-7 animate-pulse bg-gray-200 rounded-md"></div>
+                                    </div>
+                                    <div className="flex  justify-between items-center w-full">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-4 w-24"></div>
+                                            <div className="animate-pulse bg-gray-200 rounded-md h-3 w-16"></div>
+                                        </div>
+                                        <div className="animate-pulse bg-gray-200 rounded-full w-6 h-6"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    }
+
+    return (
+        <section>
+            {listItems && listItems.length > 0 && <div className="py-2">
+               
+                {depth > 0 && <div className="flex items-center gap-x-2 p-2 px-4 pb-5 font-bold">
+                    <ArrowRight onClick={onBackArrow} className=" cursor-pointer text-gray-500" />
+                    <span style={{ background: selectedNav.colors[selectedNav.background][100] }} className={`flex p-2 shrink-0 items-center justify-center rounded-md`}>
+                        <img className="w-6" src={selectedNav.icon_url} />
+                    </span>
+                    <span className='text-right text-sm'>{selectedNav ? selectedNav.name : title}</span>
+                </div>}
+
+                <div className="flex flex-col">
+                    
+                    {listItems.map((item, index) => {
+                        if (item.type == "core") {
+                            return <div onClick={() => handleItemClick(item)} key={index} className="rtl hover:bg-gray-200  p-2 px-4 cursor-pointer">
+                                <div className="order-2 w-full flex items-center gap-2 md:order-none">
+                                    <span style={{ background: item.colors[item.background][100] }} className={`flex p-3 shrink-0 border items-center justify-center rounded-md`}>
+                                        <img className="w-7" src={item.icon_url} />
+                                    </span>
+                                    <div className="flex  justify-between items-center w-full">
+                                        <div className="flex flex-col gap-1">
+                                            <h3 className="font-semibold text-sm">{item.name}</h3>
+                                            <p className="text-xs line-clamp-3 text-stone-400">
+                                                {item.description}
+                                            </p>
+                                        </div>
+                                        {item.children && <ChevronLeft size={"16"} className="text-stone-500" />}
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    })}
+
+                    {depth == 0 && <span className="block p-4 text-stone-500">ابزارها</span>}
+
+                    {listItems.map((item, index) => {
+
+                        if (item.type == "tools") {
+                            return <div onClick={() => handleItemClick(item)} key={index} className="rtl hover:bg-gray-200 relative p-2 px-4 cursor-pointer">
+                                <div className="order-2 w-full flex items-center gap-2 md:order-none">
+                                    <span style={{ background: item.colors[item.background][100] }} className={`flex p-3 shrink-0 border items-center justify-center rounded-md`}>
+                                        <img className="w-6" src={item.icon_url} />
+                                    </span>
+                                    <div className="flex  justify-between items-center w-full">
+                                        <div className="flex  flex-col gap-1">
+                                            <h3 className="font-semibold text-sm">{item.name}</h3>
+                                            <p className="text-xs line-clamp-3 text-stone-400">
+                                                {item.description}
+                                            </p>
+                                        </div>
+                                        {item.children && <ChevronLeft size={"16"} className="text-stone-500" />}
+                                    </div>
+                                </div>
+                                {item.is_mcp_server == 1 && <div style={{ background: item.colors[item.background][100], color: item.colors[item.background][500] }} className="absolute left-10 flex justify-center items-center text-sm  px-2 pt-1 font-extrabold rounded-lg top-4">MCP</div>}
+                            </div>
+                        }
+                    })}
+
+                </div>
+            </div>}
+        </section>
+    );
+};

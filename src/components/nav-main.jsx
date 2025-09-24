@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import {
   Collapsible,
@@ -26,29 +26,23 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className={`text-sm text-stone-400`}>{title}</SidebarGroupLabel>
-      <SidebarMenu>
+      <SidebarGroupLabel className={`text-sm mb-2 text-stone-400 font-bold `}>{title}</SidebarGroupLabel>
+      <SidebarMenu className="space-y-1.5">
         {items.map((item) => (
           <Collapsible key={item.title} asChild defaultOpen={item.isActive}>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <Link href={item.url}>
-                  <item.icon />
-                  <span className="text-sm">{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-              {item.items?.length ? (
+               {item.items?.length ? (
                 <>
                   <CollapsibleTrigger asChild>
                     <SidebarMenuAction className="data-[state=open]:rotate-90">
-                      <ChevronRight />
+                      <ChevronLeft />
                       <span className="sr-only">Toggle</span>
                     </SidebarMenuAction>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items?.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
+                        <SidebarMenuSubItem  key={subItem.title}>
                           <SidebarMenuSubButton asChild>
                             <Link href={subItem.url}>
                               <span>{subItem.title}</span>
@@ -60,6 +54,13 @@ export function NavMain({
                   </CollapsibleContent>
                 </>
               ) : null}
+              <SidebarMenuButton asChild tooltip={item.title}>
+                <Link href={item.url}>
+                  <item.icon />
+                  <span className="text-black">{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+             
             </SidebarMenuItem>
           </Collapsible>
         ))}

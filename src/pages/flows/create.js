@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Background,
   ReactFlow,
@@ -8,6 +8,7 @@ import {
   applyNodeChanges,
   applyEdgeChanges,
   MiniMap,
+  useReactFlow,
   useStoreApi
 } from '@xyflow/react';
 
@@ -34,7 +35,7 @@ import {
 
 import List2 from '@/components/list';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCoreIntegrations, fetchCreateFlow, fetchFlow } from '../api';
+import { fetchCoreElements, fetchCoreIntegrationInterface, fetchCoreIntegrations, fetchCreateFlow, fetchFlow } from '../api';
 import CircleLogoImage from '@/cs-components/circle-logo-image';
 import CustomNode from '@/cs-components/custom-node';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -42,6 +43,8 @@ import toast from 'react-hot-toast';
 import CustomToast from '@/cs-components/custom-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import SpinnerLoader from '@/cs-components/spinner-loader';
+import { DnDProvider, useDnD } from '@/cs-components/dnd-context';
+import InlineEdit from '@/cs-components/inline-edit';
 
 
 const nodeTypes = {
@@ -62,66 +65,128 @@ const AddNodeOnEdgeDrop = () => {
   const [rfInstance, setRfInstance] = useState(null);
   const [flowUniqueId, setFlowUniqueId] = useState();
   const [createdFlow, setCreatedFlow] = useState();
+  const [hasInterface, setHasInterface] = useState();
   const [viewPort, setViewPort] = useState({
     x: 0,
     y: 0,
     zoom: 0
   });
   const router = useRouter()
-  const store = useStoreApi();
   const searchParams = useSearchParams()
+  const [type] = useDnD();
+  const { screenToFlowPosition } = useReactFlow();
+  const [dropedNode, setDropedNode] = useState()
+  const store = useStoreApi();
 
-  const addNode = (item) => {
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, [])
 
-    const {
-      height,
-      width,
-      transform: [transformX, transformY, zoomLevel]
-    } = store.getState();
+  const onDrop = useCallback(
+    (event) => {
+      event.preventDefault();
 
-    const zoomMultiplier = 1 / zoomLevel;
-
-    const centerX = -transformX * zoomMultiplier + (width * zoomMultiplier) / 2;
-    const centerY =
-      -transformY * zoomMultiplier + (height * zoomMultiplier) / 2;
-
-    setNodes([
-      ...nodes,
-      {
-        id: `${Math.random()}`,
-        type: 'reactComponent',
-        position: {
-          x: centerX,
-          y: centerY
-        },
-        data: {
-          meta: item,
-        }
+      if (!type) {
+        return;
       }
-    ])
 
-  }
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      setNodes([
+        ...nodes,
+        {
+          id: `${Math.random()}`,
+          type: 'reactComponent',
+          position,
+          data: {
+            meta: dropedNode,
+          }
+        }
+      ])
+
+    },
+    [screenToFlowPosition, type, nodes, dropedNode],
+  );
+
+
+  const onAddInterface = () => dispatch(fetchCoreIntegrationInterface())
 
   const onSave = useCallback(() => {
     if (rfInstance) {
+
       setSubmitted(true)
+
+      let finalResult = rfInstance.toObject()
+
+      if (finalResult.nodes != undefined) {
+        finalResult.nodes.map(item => {
+          item.data.meta = item.data.meta.id
+          return item
+        })
+      }
+
       dispatch(fetchCreateFlow({
-        pattern: rfInstance.toObject(),
+        pattern: finalResult,
         id: flowUniqueId ?? "",
         name
       }))
+
     }
   }, [rfInstance, flowUniqueId, name]);
 
 
+  useEffect( () => {
+    dispatch(fetchCoreElements())
+    dispatch(fetchCoreIntegrations())
+  }, [])
+
   useEffect(() => {
     if (visibleTools) {
-      dispatch(fetchCoreIntegrations())
-      setTimeout(() => {
+        setTimeout(() => {
         document.body.style.pointerEvents = "all"
       }, 1000)
     }
   }, [visibleTools])
+
+  useEffect(() => {
+
+    if (integrations.interfaceData && integrations.interfaceData.length > 0) {
+
+      const {
+        height,
+        width,
+        transform: [transformX, transformY, zoomLevel]
+      } = store.getState();
+
+      const zoomMultiplier = 1 / zoomLevel;
+
+      const centerX = -transformX * zoomMultiplier + (width * zoomMultiplier) / 2;
+      const centerY =
+        -transformY * zoomMultiplier + (height * zoomMultiplier) / 2;
+
+      setNodes((prevNodes) => [
+        ...prevNodes,
+        {
+          id: `${Math.random()}`,
+          type: 'reactComponent',
+          position: {
+            x: centerX,
+            y: centerY
+          },
+          data: {
+            meta: integrations.interfaceData[0],
+          }
+        }
+      ]);
+
+      setHasInterface(true)
+    }
+
+  }, [integrations])
 
 
   const onNodesChange = useCallback(
@@ -142,8 +207,10 @@ const AddNodeOnEdgeDrop = () => {
   useEffect(() => {
 
     if (window.location.href.includes("flow_id")) {
-      setFlowUniqueId(searchParams.get("flow_id"))
-      dispatch(fetchFlow(searchParams.get("flow_id")))
+      if (searchParams.get("flow_id") != null) {
+        setFlowUniqueId(searchParams.get("flow_id"))
+        dispatch(fetchFlow(searchParams.get("flow_id")))
+      }
     }
 
     if (!window.location.href.includes("flow_id")) {
@@ -182,7 +249,11 @@ const AddNodeOnEdgeDrop = () => {
     if (createdFlow && createdFlow.pattern) {
       let dbNodes = []
       let pattern = createdFlow.pattern
+      let hasInterface = false
       pattern.nodes.map((item) => {
+        if (item.data.meta.slug == "interface") {
+          hasInterface = true
+        }
         dbNodes.push({
           id: item.id,
           type: 'reactComponent',
@@ -193,6 +264,7 @@ const AddNodeOnEdgeDrop = () => {
           }
         })
       })
+      setHasInterface(hasInterface)
       setNodes(dbNodes)
       setEdges(pattern.edges)
       setViewPort(pattern.viewport)
@@ -203,12 +275,12 @@ const AddNodeOnEdgeDrop = () => {
   return (
     <div className='flex h-[calc(100vh-64px)] flex-col md:flex-row'>
       <div className='dndflow relative flex min-h-svh min-w-svw flex-col! overflow-hidden transition-all'>
-        <div className=' w-full z-100 fixed top-0 ltr'>
+        <div className=' w-full z-60 fixed top-0 ltr'>
           <div className=' flex justify-between py-2.5 px-6 items-center'>
             <div className='flex relative p-2 gap-x-2 rounded-lg items-center bg-white border shadow'>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button disabled={nodes && nodes.length == 0} className="bg-gradient cursor-pointer text-base hover:bg-gradient hover:text-white text-white" size="sm" variant="outline">
+                  <Button disabled={nodes && nodes.length == 0} className="bg-gradient-secondary cursor-pointer text-base hover:bg-gradient hover:text-white text-white" size="sm" variant="outline">
                     <span>اجرا</span>
                     <Play />
                   </Button>
@@ -238,7 +310,6 @@ const AddNodeOnEdgeDrop = () => {
                   <p>تاریخچه اجرا</p>
                 </TooltipContent>
               </Tooltip>
-
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div onClick={() => {
@@ -265,25 +336,22 @@ const AddNodeOnEdgeDrop = () => {
                     <p>ارسال نتیجه (وب‌هوک)</p>
                   </TooltipContent>
                 </Tooltip>
-
                 <Button className="bg-stone-50 text-base cursor-pointer" size="sm" variant="outline">
                   <span>خودکارسازی</span>
                   <CalendarSync />
                 </Button>
-
-                <Button className="bg-stone-50 text-base cursor-pointer" size="sm" variant="outline">
+                {hasInterface != undefined && !hasInterface && <Button onClick={onAddInterface} className="bg-stone-50 text-base cursor-pointer" size="sm" variant="outline">
                   <span>رابط کاربری</span>
                   <Layout />
-                </Button>
+                </Button>}
+                {hasInterface != undefined && hasInterface && <Button className="bg-stone-50 text-base cursor-pointer" size="sm" variant="outline">
+                  <span>ویرایش رابط کاربری</span>
+                  <Layout />
+                </Button>}
               </div>
               <div className='flex items-center space-x-3'>
                 <div className='text-base focus:border-none text-right font-bold cursor-pointer hover:bg-gray-100 border-none py-1  rounded-lg'>
-                  {name ? <input onKeyUp={(e) => {
-                    if (e.keyCode == 13) {
-                      e.preventDefault()
-                      e.target.blur();
-                    }
-                  }} value={name} className='w-52 rtl' onChange={(e) => setName(e.target.value)} html={name} /> : <SpinnerLoader />}
+                  {name ? <InlineEdit value={name} onChange={setName} /> : <SpinnerLoader />}
                 </div>
                 <Link href="/flows">
                   <CircleLogoImage />
@@ -300,7 +368,7 @@ const AddNodeOnEdgeDrop = () => {
                   <SheetTrigger asChild>
                     {name && nodes && nodes.length == 0 && <div className=' min-h-screen absolute top-0 left-0 right-0 flex items-center justify-center'><Button onClick={() => {
                       setVisibleTools(true)
-                    }} className={`bg-gradient text-base cursor-pointer absolute z-[1000] hover:bg-gradient hover:text-white text-white px-6`} variant="outline" size={"lg"}>
+                    }} className={`bg-gradient-secondary text-base cursor-pointer absolute z-[1000] hover:bg-gradient hover:text-white text-white px-6`} variant="outline" size={"lg"}>
                       <span>اولین فرآیند خود را ایجاد کنید</span>
                       <Plus />
                     </Button>
@@ -313,9 +381,9 @@ const AddNodeOnEdgeDrop = () => {
                         <SheetDescription></SheetDescription>
                       </SheetHeader>
                     </div>
-                    <div className={` bg-white h-screen border shadow  rounded-lg min-w-sm z-50`}>
+                    <div className={`bg-white h-screen border shadow  rounded-lg min-w-sm z-50`}>
                       <ScrollArea className="h-[750px] rtl">
-                        <List2 addNode={addNode} loading={integrations.isLoading} items={integrations.data} />
+                        <List2 setDropedNode={setDropedNode} loading={integrations.isLoading} items={integrations.data} />
                         <Button variant="outline" onClick={() => {
                           setVisibleTools(false)
                         }} asChild size="icon" className="size-8 absolute -left-10 top-0 p-1 cursor-pointer text-gray-500">
@@ -341,6 +409,8 @@ const AddNodeOnEdgeDrop = () => {
                   fitViewOptions={viewPort}
                   deleteKeyCode={["Delete"]}
                   fitView
+                  onDrop={onDrop}
+                  onDragOver={onDragOver}
                   attributionPosition="top-right"
                 >
                   <Background variant="dots" gap={44} size={2} color='#ccc' />
@@ -353,12 +423,13 @@ const AddNodeOnEdgeDrop = () => {
         </div>
       </div>
     </div>
-
   );
 };
 
 export default () => (
   <ReactFlowProvider>
-    <AddNodeOnEdgeDrop />
+    <DnDProvider>
+      <AddNodeOnEdgeDrop />
+    </DnDProvider>
   </ReactFlowProvider>
 );

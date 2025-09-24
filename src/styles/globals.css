@@ -151,7 +151,11 @@ body {
 }
 
 .bg-gradient {
-  @apply bg-gradient-to-r from-sky-500 to-sky-600
+  @apply bg-gradient-to-b from-sky-400 to-sky-500
+}
+
+.bg-gradient-secondary {
+  @apply bg-black
 }
 
 .react-flow__handle {
@@ -170,4 +174,24 @@ body {
 
 .react-flow__node-reactComponent.selected .noding{
   @apply  border-5
+}
+
+.ring-sidebar-ring svg{
+  @apply size-5
+}
+
+.link-font{
+  font-family:Arial, Helvetica, sans-serif !important;
+}
+
+[data-slot="dialog-overlay"]{
+  z-index: 60 ;
+}
+
+[data-slot="dialog-content"]{
+  z-index: 70 ;
+}
+
+.dropable-items > div:first-child{
+   @apply min-h-44  
 }

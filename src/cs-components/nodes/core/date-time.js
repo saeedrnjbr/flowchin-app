@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/select"
 import { useEffect, useState } from "react"
 
-export default ({ onUpdateNodes }) => {
+export default ({ onUpdateNodes, params }) => {
 
-    const [format, setFormat] = useState("Y/m/d")
-    const [timezone, setTimezone] = useState("asiaTehran")
-    const [customFormat, setCustomFormat] = useState()
+    const [format, setFormat] = useState(params ? params.format : "Y/m/d")
+    const [timezone, setTimezone] = useState(params ? params.timezone : "asiaTehran")
+    const [customFormat, setCustomFormat] = useState(params ? params.customFormat : "")
 
     useEffect(() => {
         onUpdateNodes({
@@ -23,9 +23,9 @@ export default ({ onUpdateNodes }) => {
         })
     }, [format, customFormat, timezone])
 
-    return <div className="flex flex-col space-y-3 pt-5">
+    return <div className="flex flex-col space-y-3">
         <div className="grid gap-3 text-xs">
-            <Label className=" text-stone-500  text-xs"  htmlFor="name">فرمت نمایش</Label>
+            <Label className=" text-xs"  htmlFor="name">فرمت نمایش</Label>
             <Select value={format} onValueChange={setFormat}>
                 <SelectTrigger className="w-full rtl">
                     <SelectValue />
@@ -38,11 +38,11 @@ export default ({ onUpdateNodes }) => {
             </Select>
         </div>
         <div className={`gap-3 ${format == "format" ? "grid": "hidden"}`}>
-            <Label className=" text-stone-500  text-xs" htmlFor="custom_format">فرمت خاص</Label>
+            <Label className=" text-xs" htmlFor="custom_format">فرمت خاص</Label>
             <Input onChange={(e) => setCustomFormat(e.target.value)} type="text" id="custom_format" />
         </div>
         <div className="grid gap-3 text-xs">
-            <Label className=" text-stone-500 text-xs" htmlFor="description">منطقه جغرافیایی</Label>
+            <Label className="text-xs" htmlFor="description">منطقه جغرافیایی</Label>
             <Select value={timezone} onValueChange={setTimezone}>
                 <SelectTrigger className="w-full rtl">
                     <SelectValue />

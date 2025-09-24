@@ -1,17 +1,18 @@
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Handle, NodeToolbar, Position, useNodeId, useReactFlow, useStoreApi } from '@xyflow/react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Copy, Trash, Workflow } from 'lucide-react';
-import DateTime from './nodes/date-time';
+import { Copy, Layout, Play, Trash, Workflow } from 'lucide-react';
+import NodeWrapper from './node-wrapper';
+import NoteNode from './note-node';
+import Interface from './nodes/interface';
 
 export default memo(({ data }) => {
 
     const id = useNodeId();
     const { setNodes } = useReactFlow()
-    const { meta } = data
+    const { meta, params } = data
     const store = useStoreApi();
-
 
     const handleDelete = useCallback(() => {
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
@@ -30,7 +31,6 @@ export default memo(({ data }) => {
         const centerX = -transformX * zoomMultiplier + (width * zoomMultiplier) / 2;
         const centerY =
             -transformY * zoomMultiplier + (height * zoomMultiplier) / 2;
-
 
         setNodes((prevNodes) => [
             ...prevNodes,
@@ -52,7 +52,6 @@ export default memo(({ data }) => {
 
     const onUpdateNodes = useCallback((params) => {
         setNodes((prevNodes) => prevNodes.map(function (node) {
-
             if (node.id === id) {
                 return {
                     ...node,
@@ -62,34 +61,55 @@ export default memo(({ data }) => {
                     }
                 };
             }
-
             return node;
-
         }));
     }, [id, setNodes]);
 
+    if (meta.slug == "note") {
+        return <NoteNode params={params} onUpdateNodes={onUpdateNodes} />
+    }
+
+
+    if (meta.slug == "interface") {
+        return <Interface params={params} onUpdateNodes={onUpdateNodes} />
+    }
+
     return <>
         <NodeToolbar>
-            <div className="flex gap-2  flex-wrap">
+            <div className="flex gap-2 flex-wrap">
                 <div className="divide-x divide-muted-foreground text-black ">
-                    <Button onClick={handleDelete} size="lg" className="rounded-none hover:bg-stone-100 cursor-pointer bg-white text-black font-bold first:rounded-l-md last:rounded-r-md border-l border border-stone-200">
+                    <Button onClick={handleDelete} size="lg" className="rounded-none hover:bg-stone-100 cursor-pointer bg-white text-red-400 font-bold first:rounded-l-md last:rounded-r-md border-l border border-stone-200">
                         <div className='flex gap-x-2 items-center'>
                             <span>حذف</span>
                             <Trash />
                         </div>
                     </Button>
-                    <Button size="lg" className="rounded-none hover:bg-stone-100 cursor-pointer bg-white text-black font-bold first:rounded-l-md last:rounded-r-md border border-l-0 border-stone-200">
+                    {meta.slug == "interface" && <Button size="lg" className="rounded-none hover:bg-stone-100 cursor-pointer bg-white text-black font-bold first:rounded-l-md last:rounded-r-md border-l border border-stone-200">
                         <div className='flex gap-x-2 items-center'>
-                            <span>تنظیم ورودی</span>
-                            <Workflow />
+                            <span>تنظیمات رابط‌ کاربری</span>
+                            <Layout />
                         </div>
-                    </Button>
-                    <Button onClick={() => onDuplicateNodes(meta)} size="lg" className="rounded-none hover:bg-stone-100 cursor-pointer bg-white text-black font-bold first:rounded-l-md last:rounded-r-md border border-l-0 border-stone-200">
-                        <div className='flex gap-x-2 items-center'>
-                            <span>کپی</span>
-                            <Copy />
-                        </div>
-                    </Button>
+                    </Button>}
+                    {meta.slug != "interface" && <>
+                        <Button size="lg" className="rounded-none hover:bg-stone-100 cursor-pointer bg-white text-black font-bold first:rounded-l-md last:rounded-r-md border-l border border-stone-200">
+                            <div className='flex gap-x-2 items-center'>
+                                <span>تست</span>
+                                <Play />
+                            </div>
+                        </Button>
+                        <Button size="lg" className="rounded-none hover:bg-stone-100 cursor-pointer bg-white text-black font-bold first:rounded-l-md last:rounded-r-md border border-l-0 border-stone-200">
+                            <div className='flex gap-x-2 items-center'>
+                                <span>تنظیم ورودی</span>
+                                <Workflow />
+                            </div>
+                        </Button>
+                        <Button onClick={() => onDuplicateNodes(meta)} size="lg" className="rounded-none hover:bg-stone-100 cursor-pointer bg-white text-black font-bold first:rounded-l-md last:rounded-r-md border border-l-0 border-stone-200">
+                            <div className='flex gap-x-2 items-center'>
+                                <span>کپی</span>
+                                <Copy />
+                            </div>
+                        </Button>
+                    </>}
                 </div>
             </div>
         </NodeToolbar>
@@ -114,10 +134,10 @@ export default memo(({ data }) => {
                         <Switch />
                     </div>}
                 </div>
-                <div className="py-4 px-2">
+                {meta.slug != "interface" && <div className="py-4 px-2">
                     <p className="mb-4 text-xs line-clamp-2 max-w-sm">{meta.description}</p>
-                    {meta.slug == "date_time" && <DateTime onUpdateNodes={onUpdateNodes} />}
-                </div>
+                    <NodeWrapper slug={meta.slug} params={params} onUpdateNodes={onUpdateNodes} />
+                </div>}
             </div>
         </div>
         {meta.output == 1 && <Handle type="source" position={Position.Bottom} className='flex items-center justify-center font-normal text-[#6d6d6d]  text-xs'>1</Handle>}

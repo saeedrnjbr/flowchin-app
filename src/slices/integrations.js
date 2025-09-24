@@ -1,11 +1,15 @@
-import { fetchCoreIntegrations, fetchToolsIntegrations } from "@/pages/api";
+import { fetchCoreIntegrationInterface, fetchCoreIntegrations, fetchToolsIntegrations } from "@/pages/api";
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     isLoading: false,
     data: [],
     message: "",
-    error: false
+    error: false,
+
+    interfaceIsLoading: false,
+    interfaceData: undefined,
+    interfaceError: false,
 
 };
 
@@ -28,6 +32,22 @@ const integrationSlice = createSlice({
         builder.addCase(fetchCoreIntegrations.rejected, (state, action) => {
             state.isLoading = false;
             state.error = false;
+        })
+
+        builder.addCase(fetchCoreIntegrationInterface.pending, (state, action) => {
+            state.interfaceIsLoading = true;
+            state.interfaceError = false;
+            state.interfaceData = undefined;
+        })
+        builder.addCase(fetchCoreIntegrationInterface.fulfilled, (state, action) => {
+            state.interfaceIsLoading = false;
+            state.interfaceData = action.payload.data;
+            state.interfaceError = action.payload.error;
+            state.message = action.payload.message;
+        })
+        builder.addCase(fetchCoreIntegrationInterface.rejected, (state, action) => {
+            state.interfaceIsLoading = false;
+            state.interfaceError = false;
         })
 
     }

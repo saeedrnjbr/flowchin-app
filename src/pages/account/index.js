@@ -8,12 +8,15 @@ import {
 import { useFormik } from "formik";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {  fetchUserCurrent, fetchUserLogin, fetchUserVerify } from "@/pages/api";
+import { fetchUserCurrent, fetchUserLogin, fetchUserVerify } from "@/pages/api";
 import toast from "react-hot-toast";
 import Logo from "@/cs-components/logo";
 import { useRouter } from "next/navigation";
 import Spinner from "@/cs-components/spinner";
 import CustomToast from "@/cs-components/custom-toast";
+import Countdown, { zeroPad } from 'react-countdown';
+import { Edit } from "lucide-react";
+import Link from "next/link";
 
 
 export default function Account() {
@@ -23,7 +26,9 @@ export default function Account() {
   const [form, setForm] = useState("login")
   const [mobile, setMobile] = useState("login")
   const [submitted, setSubmitted] = useState(false)
+  const [expiredAt, setExpiredAt] = useState()
   const [verifySubmitted, setVerifySubmitted] = useState(false)
+  const [resendCode, setResendCode] = useState(false)
   const users = useSelector(state => state.users)
   const router = useRouter()
 
@@ -78,8 +83,20 @@ export default function Account() {
   }
 
   if (users.data && users.data.length > 0 && submitted) {
+
+    let countdownTimer = Date.now() + 180000
+
+    setExpiredAt(countdownTimer)
     setForm("verify")
     setSubmitted(false)
+  }
+
+  const handleResendCode = () => {
+    dispatch(fetchUserLogin({
+      mobile
+    }))
+    setResendCode(false)
+    setExpiredAt(Date.now() + 180000)
   }
 
   if (users.verifyError && verifySubmitted) {
@@ -100,6 +117,20 @@ export default function Account() {
   if (!users.currentError) {
     return router.push("/dashboard")
   }
+
+  const renderer = ({ hours, minutes, seconds, completed }) => {
+    if (completed) {
+      setResendCode(true)
+    } else {
+      // Render a countdown
+      return <div className="flex items-center justify-center text-stone-400 gap-2">
+        <span>{zeroPad(minutes)}:{zeroPad(seconds)}</span>
+        <span className="text-sm">مانده تا دریافت مجدد کد</span>
+      </div>
+    }
+  };
+
+  console.log(expiredAt)
 
   return <div className=" flex items-center justify-center  min-h-screen">
     <div className={`relative   max-w-[450px] border shadow-lg rounded-lg py-8 mx-auto`}>
@@ -132,7 +163,12 @@ export default function Account() {
         <Logo />
         <div className="grid gap-5 px-5">
           <h1 className="text-xl font-bold">کد تایید را وارد کنید</h1>
-          <label className=" text-stone-400  text-sm  font-normal ">کد تایید برای شماره {mobile} پیامک شد</label>
+          <div className="flex  text-stone-400  items-center justify-between">
+            <label className=" text-sm  font-normal ">کد تایید برای شماره {mobile} پیامک شد</label>
+            <Edit onClick={() => {
+              setForm("login")
+            }} className=" cursor-pointer" size={16} />
+          </div>
           <InputOTP onChange={(value) => verifyFormik.setFieldValue("code", value)} maxLength={5} containerClassName="ltr" >
             <InputOTPGroup className="grid grid-cols-5 gap-4 mx-auto">
               <InputOTPSlot index={0} className="rounded-md border-l py-5 px-8 text-base" />
@@ -142,6 +178,8 @@ export default function Account() {
               <InputOTPSlot index={4} className="rounded-md border-l py-5 px-8 text-base" />
             </InputOTPGroup>
           </InputOTP>
+          {expiredAt && !resendCode && <Countdown renderer={renderer} date={expiredAt} />}
+          {resendCode && <span onClick={handleResendCode} className=" cursor-pointer hover:text-blue-600  text-sky-500 p-2">ارسال مجدد کد</span>}
           <Button type="submit" className="w-full bg-gradient dark:text-white py-6 text-base  hover:cursor-pointer">
             تایید
           </Button>

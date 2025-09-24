@@ -10,6 +10,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 const Services = ({ services, setOpen, formik }) => {
 
   const dispatch = useDispatch()
@@ -31,13 +43,11 @@ const Services = ({ services, setOpen, formik }) => {
       <div className="mt-5">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {services.map((service, index) => (
-            <div
-              key={index}
-              className="  space-y-6 rounded-lg border border-slate-200 p-4 transition-shad{children}ow hover:shadow-sm">
+            <div key={index}  className="  space-y-6 rounded-lg border border-slate-200 p-4 transition-shad{children}ow hover:shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className={` bg-gradient text-white rounded-full p-3`}>
-                     <Folder size={16} />
+                  <div className={`text-sky-400 bg-sky-100 rounded-full p-3`}>
+                    <Folder size={24} />
                   </div>
                   <h3 className="text-base font-semibold">{service.name}</h3>
                 </div>
@@ -47,8 +57,24 @@ const Services = ({ services, setOpen, formik }) => {
                     formik.setFieldValue("name", service.name)
                     formik.setFieldValue("description", service.description)
                     formik.setFieldValue("id", service.id)
-                  }} size="16" className=" cursor-pointer text-stone-400" />
-                  <Trash onClick={() => handleDelete(service.id)} className=" cursor-pointer text-stone-400" size="16" />
+                  }} size="20" className=" cursor-pointer text-black" />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Trash className=" cursor-pointer text-red-400" size="20" />
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle></AlertDialogTitle>
+                        <AlertDialogDescription className="text-right text-black font-bold">
+                          آیا از حذف آیتم مطمن هستید؟
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>انصراف</AlertDialogCancel>
+                        <AlertDialogAction  onClick={() => handleDelete(service.id)}>بله</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
               <div className="flex items-center text-stone-400 text-sm  justify-between">
@@ -58,7 +84,7 @@ const Services = ({ services, setOpen, formik }) => {
                 <div className="inline-flex gap-x-4">
                   <Tooltip>
                     <TooltipTrigger>
-                      <span className="inline-flex gap-x-1 text-purple-500"> <Workflow size="16" />0</span>
+                      <span className="inline-flex gap-x-1"> <Workflow size="16" />{service.flows.length}</span>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>تعداد فرآیندها</p>
@@ -66,7 +92,7 @@ const Services = ({ services, setOpen, formik }) => {
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger>
-                      <span className="inline-flex gap-x-1 text-green-500"> <History size="16" />0</span>
+                      <span className="inline-flex gap-x-1 "> <History size="16" />0</span>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>تاریخچه اجرا</p>

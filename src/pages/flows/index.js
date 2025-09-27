@@ -1,8 +1,8 @@
 import DashboardLayout from "@/cs-components/dashboard-layout"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { fetchDeleteFlow, fetchDuplicateFlow, fetchFlows, fetchUpdateFlow, fetchUpdateFlowWorkspace, fetchWorkspaces } from "../api"
-import { ChartArea, CopyCheck, Edit, Folder, FolderPlus, Package, PackageCheck, Plus, Trash, WorkflowIcon } from "lucide-react"
+import { BASE_URL, fetchDeleteFlow, fetchDuplicateFlow, fetchFlows, fetchUpdateFlow, fetchUpdateFlowWorkspace, fetchWorkspaces } from "../api"
+import { ChartArea, CopyCheck, Edit, Folder, FolderPlus, MoreHorizontal, MoreVertical, Package, PackageCheck, Plus, Trash, WorkflowIcon } from "lucide-react"
 import DashboardHeader from "@/cs-components/dashboard-header"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -62,7 +62,11 @@ import { Textarea } from "@/components/ui/textarea"
 import toast from "react-hot-toast"
 import CustomToast from "@/cs-components/custom-toast"
 
-export default function Dashboard() {
+import { ScrollArea } from "@/components/ui/scroll-area"
+import UppyUploader from "@/cs-components/uppy-uploader"
+
+
+export default function () {
 
   const dispatch = useDispatch()
   const flows = useSelector(state => state.flows)
@@ -71,9 +75,10 @@ export default function Dashboard() {
   const [updateFlowOpen, setUpdateFlowOpen] = useState(false)
   const [updateStoreFlowOpen, setUpdateStoreFlowOpen] = useState(false)
   const [selectedFlow, setSelectedFlow] = useState()
+  const [flowCover, setFlowCover] = useState()
   const workspaces = useSelector(state => state.workspaces)
 
-  const updateFlowWorkspace = (workspace) => {
+  const updateFlowWorkspace = workspace => {
     setSubmitted(true)
     dispatch(fetchUpdateFlowWorkspace({
       workspace_id: workspace.id,
@@ -126,6 +131,11 @@ export default function Dashboard() {
   const handleDuplicateFlow = (id) => {
     setSubmitted(true)
     dispatch(fetchDuplicateFlow({ id }))
+  }
+
+  const handleLogoUpload = (file) => {
+    formik.setFieldValue("icon", file.file)
+    setFlowCover(file)
   }
 
   if ((flows.flowDeleteData.length > 0 || flows.flowDuplicateData.length > 0 || flows.flowUpdateData.length > 0) && submitted) {
@@ -312,10 +322,10 @@ export default function Dashboard() {
     {flows.flowsData && flows.flowsData.length > 0 && <Table className="border">
       <TableHeader>
         <TableRow>
-          <TableHead className="text-right text-stone-500 text-base">عنوان</TableHead>
-          <TableHead className="text-center  text-stone-500 text-base">گر‌ه‌ها</TableHead>
-          <TableHead className="text-center  text-stone-500 text-base">تاریخ بروزرسانی</TableHead>
-          <TableHead className="text-center  text-stone-500 text-base"></TableHead>
+          <TableHead className="text-right text-gray-500 text-base">عنوان</TableHead>
+          <TableHead className="text-center  text-gray-500 text-base">گر‌ه‌ها</TableHead>
+          <TableHead className="text-center  text-gray-500 text-base">تاریخ بروزرسانی</TableHead>
+          <TableHead className="text-center  text-gray-500 text-base"></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -323,20 +333,20 @@ export default function Dashboard() {
           return <TableRow key={f}>
             <TableCell className="flex space-y-2 flex-col">
               <div className="flex gap-x-2">
-                <Link className="font-bold text-base" href={`/flows/create/?flow_id=${flow.unique_id}`}>
+                <Link className="font-bold text-base text-gray-700" href={`/flows/create/?flow_id=${flow.unique_id}`}>
                   {flow.name}
                 </Link>
-                {flow.workspace ? <div className="bg-sky-100 rounded-2xl px-2 gap-x-1 text-sky-500 flex items-center">
+                {flow.workspace ? <div className="bg-indigo-100 rounded-2xl px-2 gap-x-1 text-indigo-500 flex items-center">
                   <Folder size={14} />
                   <span className="">{flow.workspace.name}</span>
                 </div> : ""}
               </div>
-              <p className=" text-sm text-stone-400">{flow.content ?? "توضیحات تکمیلی مورد نیاز جهت فروش در مارکت"}</p>
+              <p className=" text-sm text-gray-400">{flow.content ?? "توضیحات تکمیلی مورد نیاز جهت فروش در بازارچه"}</p>
             </TableCell>
             <TableCell className="text-center">
               <div className="flex items-center  gap-x-1 justify-center">
-                {flow.nodes.map((node) => {
-                  return <Tooltip>
+                {flow.nodes.map((node, n) => {
+                  return <Tooltip key={n}>
                     <TooltipTrigger asChild>
                       <div className="p-2 border" style={{ background: node.integration.colors[node.integration.background][100] }}>
                         <img className="w-5" src={node.integration.icon_url} />
@@ -350,7 +360,7 @@ export default function Dashboard() {
               </div>
             </TableCell>
             <TableCell className="text-center">{flow.updated_at_fa}</TableCell>
-            <TableCell className="text-center">
+            <TableCell className="text-center text-gray-700">
               <div className="flex gap-x-2 items-center">
                 <AlertDialog>
                   <Tooltip>
@@ -372,7 +382,7 @@ export default function Dashboard() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>انصراف</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDeleteFlow(flow.unique_id)}>بله</AlertDialogAction>
+                      <AlertDialogAction onClick={() => handleDeleteFlow(flow.unique_id)} className="bg-indigo-500">بله</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -401,12 +411,12 @@ export default function Dashboard() {
                         return <div onClick={() => updateFlowWorkspace(workspace)} key={wk} className="space-y-6 cursor-pointer rounded-lg border border-slate-200 px-4 py-2 transition-shad{children}ow hover:shadow-sm">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className={`text-sky-500 bg-sky-100 rounded-full p-3`}>
+                              <div className={`text-indigo-500 bg-indigo-100 rounded-full p-3`}>
                                 <Folder size={24} />
                               </div>
                               <div className="flex flex-col space-y-2">
                                 <h3 className="text-base font-semibold">{workspace.name}</h3>
-                                <span className=" text-stone-400 text-xs">{workspace.flows.length} فرآیند</span>
+                                <span className=" text-gray-400 text-xs">{workspace.flows.length} فرآیند</span>
                               </div>
                             </div>
                           </div>
@@ -421,7 +431,7 @@ export default function Dashboard() {
                     <TooltipTrigger asChild>
                       <DialogTrigger asChild>
                         <div className="relative">
-                          {flow.has_marketplace == 1 && <PackageCheck className={flow.has_marketplace == 1 ? "text-sky-500 cursor-pointer" : "cursor-pointer"} onClick={() => {
+                          {flow.has_marketplace == 1 && <PackageCheck className={flow.has_marketplace == 1 ? "text-indigo-500 cursor-pointer" : "cursor-pointer"} onClick={() => {
                             setSelectedFlow(flow)
                             setUpdateStoreFlowOpen(true)
                           }} />}
@@ -434,61 +444,64 @@ export default function Dashboard() {
                       </DialogTrigger>
                     </TooltipTrigger>
                     <TooltipContent side="bottom">
-                      <p>فروش فرآیند در مارکت</p>
+                      <p>فروش فرآیند در بازارچه</p>
                     </TooltipContent>
                   </Tooltip>
                   <DialogContent className="sm:max-w-[725px]">
-                    <DialogHeader>
-                      <DialogTitle className="text-right px-6">فروش فرآیند در مارکت</DialogTitle>
-                      <DialogDescription></DialogDescription>
-                    </DialogHeader>
-                    <form encType="multipart/form-data" onSubmit={formik.handleSubmit}>
-                      <div className="grid gap-6">
-                        <div className='flex bg-sky-50 py-5 px-4 text-sky-500 rounded-lg  items-center ltr justify-between my-2 gap-x-1.5'>
-                          <Switch checked={formik.values.has_marketplace} id="has_marketplace" className="data-[state=checked]:bg-sky-500" onCheckedChange={(value) => formik.setFieldValue("has_marketplace", value)} />
-                          <Label htmlFor="has_marketplace">فعال در مارکت</Label>
+                    <ScrollArea className="h-[800px] rtl">
+                      <DialogHeader>
+                        <DialogTitle className="text-right px-6 pb-5">فروش فرآیند در بازارچه</DialogTitle>
+                        <DialogDescription></DialogDescription>
+                      </DialogHeader>
+                      <form encType="multipart/form-data" onSubmit={formik.handleSubmit}>
+                        <div className="grid gap-6">
+                          <div className='flex bg-linear-to-r from-pink-400 via-red-400 to-orange-400 py-5 px-4 text-white rounded-lg  items-center ltr justify-between my-2 gap-x-1.5'>
+                            <Switch checked={formik.values.has_marketplace} id="has_marketplace" className="data-[state=checked]:bg-black" onCheckedChange={(value) => formik.setFieldValue("has_marketplace", value)} />
+                            <Label className=" text-base" htmlFor="has_marketplace">فرآیند در بازارچه فعال باشد</Label>
+                          </div>
+                          <div className="grid gap-3">
+                            <Label htmlFor="content">توضیح معرفی</Label>
+                            <Input defaultValue={formik.values.content} onChange={formik.handleChange} id="content" />
+                          </div>
+                         
+                          <div className="grid gap-3">
+                            <Label htmlFor="price">قیمت (ریال)</Label>
+                            <NumericFormat thousandSeparator onValueChange={(value) => formik.setFieldValue("price", value.floatValue)} defaultValue={formik.values.price} customInput={Input} />
+                          </div>
+                          <div className="grid gap-3">
+                            <Label htmlFor="price">درصد تخفیف</Label>
+                            <Input defaultValue={formik.values.discount} onChange={formik.handleChange} id="discount" />
+                          </div>
+                          <div className="grid gap-3">
+                            <Label htmlFor="description">توضیحات</Label>
+                            <Textarea className="min-h-32" defaultValue={formik.values.description} onChange={formik.handleChange} id="description" />
+                          </div>
+                           <UppyUploader onUploaded={handleLogoUpload} id="dropzone-logo">
+                            <div style={{ background: `url(${flowCover?.file_url})` }} className="text-xs uppy-centerize bg-cover bg-center bg-no-repeat flex border-2 border-indigo-500 border-dashed  h-32 w-32  cursor-pointer items-center justify-center rounded-lg">
+                              <span className="text-base text-center">آپلود لوگو</span>
+                            </div>
+                          </UppyUploader>
                         </div>
-                        <div className="grid gap-3">
-                          <Label htmlFor="content">توضیح معرفی</Label>
-                          <Input defaultValue={formik.values.content} onChange={formik.handleChange} id="content" />
-                        </div>
-                        <div className="grid gap-3">
-                          <Label htmlFor="icon">لوگو</Label>
-                          <Input onChange={(e) => formik.setFieldValue("icon", e.currentTarget.files[0])} id="icon" type="file" />
-                          {selectedFlow && selectedFlow.icon != null && <div className="w-20 h-20 border p-2 flex items-center justify-center rounded-full"><img className=" object-contain" src={selectedFlow.icon_url} /></div>}
-                        </div>
-                        <div className="grid gap-3">
-                          <Label htmlFor="price">قیمت (ریال)</Label>
-                          <NumericFormat thousandSeparator onValueChange={(value) => formik.setFieldValue("price", value.floatValue)} defaultValue={formik.values.price} customInput={Input} />
-                        </div>
-                        <div className="grid gap-3">
-                          <Label htmlFor="price">درصد تخفیف</Label>
-                          <Input defaultValue={formik.values.discount} onChange={formik.handleChange} id="discount" />
-                        </div>
-                        <div className="grid gap-3">
-                          <Label htmlFor="description">توضیحات</Label>
-                          <Textarea className="min-h-72" defaultValue={formik.values.description} onChange={formik.handleChange} id="description" />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button className="mt-5 bg-sky-500 cursor-pointer" type="submit">ذخیره</Button>
-                      </DialogFooter>
-                    </form>
+                        <DialogFooter>
+                          <Button className="mt-5 bg-indigo-500 cursor-pointer" type="submit">ذخیره</Button>
+                        </DialogFooter>
+                      </form>
+                    </ScrollArea>
                   </DialogContent>
                 </Dialog>
 
                 {flow.has_marketplace == 1 && <Tooltip>
                   <TooltipTrigger asChild>
-                    <ChartArea className=" text-blue-500 cursor-pointer" />
+                    <ChartArea className=" text-indigo-500 cursor-pointer" />
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
                     <p>گزارش فروش</p>
                   </TooltipContent>
                 </Tooltip>}
 
-                <DropdownMenu>
+                <DropdownMenu className="text-gray-700">
                   <DropdownMenuTrigger asChild>
-                    <svg className="w-8 cursor-pointer h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M19 13C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11C18.4477 11 18 11.4477 18 12C18 12.5523 18.4477 13 19 13Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M5 13C5.55228 13 6 12.5523 6 12C6 11.4477 5.55228 11 5 11C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                    <MoreHorizontal className=" cursor-pointer" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-44">
                     <DropdownMenuRadioGroup className="rtl">
@@ -513,9 +526,9 @@ export default function Dashboard() {
     }
 
     {
-      flows.flowsData && flows.flowsData.length == 0 && <div className=" text-stone-200 flex items-center space-y-2 justify-center flex-col text-base border-slate-200 py-5 rounded-lg">
+      flows.flowsData && flows.flowsData.length == 0 && <div className=" text-gray-200 flex items-center space-y-2 justify-center flex-col text-base border-slate-200 py-5 rounded-lg">
         <WorkflowIcon size={50} />
-        <span className="text-stone-400  text-lg">فرآیندی تعریف نشده است</span>
+        <span className="text-gray-400  text-lg">فرآیندی تعریف نشده است</span>
       </div>
     }
 

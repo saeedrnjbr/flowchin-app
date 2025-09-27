@@ -118,35 +118,33 @@ export default function Account() {
     return router.push("/dashboard")
   }
 
-  const renderer = ({ hours, minutes, seconds, completed }) => {
+  const renderer = ({ _, minutes, seconds, completed }) => {
     if (completed) {
       setResendCode(true)
     } else {
       // Render a countdown
-      return <div className="flex items-center justify-center text-stone-400 gap-2">
+      return <div className="flex items-center justify-center text-gray-400 gap-2">
         <span>{zeroPad(minutes)}:{zeroPad(seconds)}</span>
         <span className="text-sm">مانده تا دریافت مجدد کد</span>
       </div>
     }
   };
 
-  console.log(expiredAt)
-
   return <div className=" flex items-center justify-center  min-h-screen">
     <div className={`relative   max-w-[450px] border shadow-lg rounded-lg py-8 mx-auto`}>
 
       {form == "login" && <form onSubmit={loginFormik.handleSubmit} className="flex  flex-col space-y-10 px-2">
-        <Logo />
+        <Logo size="w-40" />
         <div className="grid gap-5 px-5">
           <h1 className="text-xl font-bold">ورود | ثبت‌نام</h1>
-          <label className=" text-stone-400 font-normal">لطفا شماره موبایل خود را وارد نمایید</label>
+          <label className=" text-gray-400 font-normal">لطفا شماره موبایل خود را وارد نمایید</label>
           <Input onChange={loginFormik.handleChange} id="mobile" className="text-center py-5" type="text" />
-          <p className="text-sm text-stone-400">ورود شما به معنای پذیرش  شرایط <span className="text-sky-500 font-extrabold">فلوچین</span> و <span className="text-sky-500 font-extrabold">قوانین حریم‌‌خصوصی</span> است</p>
+          <p className="text-sm text-gray-400">ورود شما به معنای پذیرش  شرایط <span className="text-indigo-500 font-extrabold">فلوچین</span> و <span className="text-indigo-500 font-extrabold">قوانین حریم‌‌خصوصی</span> است</p>
           <Button disabled={users.isLoading} type="submit" className="w-full bg-gradient dark:text-white py-6 text-base  hover:cursor-pointer">
             دریافت کد
           </Button>
           <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-            <span className="bg-white  text-stone-400 relative z-10 px-2">یا</span>
+            <span className="bg-white  text-gray-400 relative z-10 px-2">یا</span>
           </div>
           <Button asChild className=" cursor-pointer" variant="outline">
             <div onClick={(e) => login(e)} >
@@ -163,7 +161,7 @@ export default function Account() {
         <Logo />
         <div className="grid gap-5 px-5">
           <h1 className="text-xl font-bold">کد تایید را وارد کنید</h1>
-          <div className="flex  text-stone-400  items-center justify-between">
+          <div className="flex  text-gray-400  items-center justify-between">
             <label className=" text-sm  font-normal ">کد تایید برای شماره {mobile} پیامک شد</label>
             <Edit onClick={() => {
               setForm("login")
@@ -179,7 +177,7 @@ export default function Account() {
             </InputOTPGroup>
           </InputOTP>
           {expiredAt && !resendCode && <Countdown renderer={renderer} date={expiredAt} />}
-          {resendCode && <span onClick={handleResendCode} className=" cursor-pointer hover:text-blue-600  text-sky-500 p-2">ارسال مجدد کد</span>}
+          {resendCode && <span onClick={handleResendCode} className=" cursor-pointer hover:text-blue-600  text-indigo-500 p-2">ارسال مجدد کد</span>}
           <Button type="submit" className="w-full bg-gradient dark:text-white py-6 text-base  hover:cursor-pointer">
             تایید
           </Button>

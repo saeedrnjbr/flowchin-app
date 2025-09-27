@@ -49,16 +49,16 @@ export function NavUser() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu >
           <DropdownMenuTrigger asChild>
             {user && <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent cursor-pointer data-[state=open]:text-sidebar-accent-foreground">
+              className="data-[state=open]:bg-sidebar-accent cursor-pointer data-[state=open]:text-sidebar-accent-foreground sidebar-bg">
               <Avatar>
-                <AvatarFallback className="rounded-lg  text-white text-lg bg-sky-500">{user.user_identifier.substring(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="rounded-lg  text-white text-lg bg-indigo-500">{user.user_identifier.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate ">{user.user_identifier}</span>
+                <span className="truncate text-indigo-400">{user.user_identifier}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>}

@@ -4,10 +4,8 @@ import { X } from 'lucide-react';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 
 
-export default memo(({ onUpdateNodes, params }) => {
+export default memo(({ onUpdateNodes, params, handleDelete }) => {
 
-    const id = useNodeId();
-    const { setNodes } = useReactFlow()
     const [note, setNote] = useState(params ? params.note : "")
 
     useEffect(() => {
@@ -15,12 +13,6 @@ export default memo(({ onUpdateNodes, params }) => {
             note
         })
     }, [note])
-
-
-    const handleDelete = useCallback(() => {
-        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
-    }, [id, setNodes]);
-
 
     return <div className='bg-gray-50 relative border text-neutral-400 min-w-96 rounded-xl py-4 px-3'>
         <X onClick={handleDelete} size={16} className="absolute z-[5000] left-4 top-7" />

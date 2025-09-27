@@ -71,7 +71,7 @@ const data = {
       isActive: true
     },
     {
-      title: "مارکت فرآیند‌ها",
+      title: "بازارچه فرآیند‌ها",
       url: "/marketplace",
       icon: Store
     },
@@ -124,20 +124,22 @@ export function AppSidebar({
   ...props
 }) {
   return (
-    <Sidebar side="right" className="bg-white" variant="inset" {...props}>
-      <SidebarHeader className="py-4 bg-white">
+    <Sidebar side="right" className="sidebar-bg" variant="inset" {...props}>
+      <SidebarHeader className="sidebar-bg pb-5">
         <SidebarMenu className="rounded-l-2xl">
           <SidebarMenuItem>
-              <Logo size="text-2xl" />
+            <Link href="/" className="flex justify-center items-center gap-2 text-center">
+              <img className={`w-32 object-contain`} src="/images/logo-white.png" />
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="bg-white">
+      <SidebarContent className="sidebar-bg">
         <NavMain title={`فضای کاری من`} items={data.navMain} />
         <NavMain title={`مالی`} items={data.invoices} />
         <NavMain title={`حساب کاربری`} items={data.projects} />
       </SidebarContent>
-      <SidebarFooter className="mb-4 text-black  rounded-l-2xl">
+      <SidebarFooter className="sidebar-bg text-white">
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>

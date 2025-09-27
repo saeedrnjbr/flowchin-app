@@ -12,7 +12,7 @@ import {
   useStoreApi
 } from '@xyflow/react';
 
-import { History, PlusIcon, X } from "lucide-react";
+import { History, PlusIcon, Sparkles, X } from "lucide-react";
 
 import '@xyflow/react/dist/style.css';
 import { Button } from '@/components/ui/button';
@@ -46,7 +46,6 @@ import SpinnerLoader from '@/cs-components/spinner-loader';
 import { DnDProvider, useDnD } from '@/cs-components/dnd-context';
 import InlineEdit from '@/cs-components/inline-edit';
 
-
 const nodeTypes = {
   reactComponent: CustomNode
 }
@@ -58,6 +57,7 @@ const AddNodeOnEdgeDrop = () => {
   const [visibleTools, setVisibleTools] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const dispatch = useDispatch()
+  const { interfaceData } = useSelector(state => state.integrations)
   const integrations = useSelector(state => state.integrations)
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
@@ -109,9 +109,24 @@ const AddNodeOnEdgeDrop = () => {
       ])
 
     },
-    [screenToFlowPosition, type, nodes, dropedNode],
+    [screenToFlowPosition, type, nodes, dropedNode,   ],
   );
 
+
+  useEffect(() => {
+    if (nodes.length == 0) {
+      setHasInterface(false)
+    }
+    if(nodes.length > 0){
+      let interfaceChecker = false
+      nodes.map( item => {
+        if(item.data.meta.slug == "interface"){
+          interfaceChecker = true
+        }
+      })
+      setHasInterface(interfaceChecker)
+    }
+  }, [nodes])
 
   const onAddInterface = () => dispatch(fetchCoreIntegrationInterface())
 
@@ -139,14 +154,14 @@ const AddNodeOnEdgeDrop = () => {
   }, [rfInstance, flowUniqueId, name]);
 
 
-  useEffect( () => {
+  useEffect(() => {
     dispatch(fetchCoreElements())
     dispatch(fetchCoreIntegrations())
   }, [])
 
   useEffect(() => {
     if (visibleTools) {
-        setTimeout(() => {
+      setTimeout(() => {
         document.body.style.pointerEvents = "all"
       }, 1000)
     }
@@ -154,7 +169,7 @@ const AddNodeOnEdgeDrop = () => {
 
   useEffect(() => {
 
-    if (integrations.interfaceData && integrations.interfaceData.length > 0) {
+    if (interfaceData && interfaceData.length > 0) {
 
       const {
         height,
@@ -178,7 +193,7 @@ const AddNodeOnEdgeDrop = () => {
             y: centerY
           },
           data: {
-            meta: integrations.interfaceData[0],
+            meta: interfaceData[0],
           }
         }
       ]);
@@ -186,7 +201,7 @@ const AddNodeOnEdgeDrop = () => {
       setHasInterface(true)
     }
 
-  }, [integrations])
+  }, [interfaceData])
 
 
   const onNodesChange = useCallback(
@@ -240,6 +255,10 @@ const AddNodeOnEdgeDrop = () => {
         setCreatedFlow(flows.flowData[0])
         setName(flows.flowData[0].name)
       }
+    }
+
+    if (!flows.flowData) {
+      setHasInterface(false)
     }
 
   }, [flows])
@@ -302,7 +321,7 @@ const AddNodeOnEdgeDrop = () => {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button disabled={nodes && nodes.length == 0} className="bg-stone-50 cursor-pointer" size="sm" variant="outline">
+                  <Button disabled={nodes && nodes.length == 0} className="bg-gray-50 cursor-pointer" size="sm" variant="outline">
                     <History />
                   </Button>
                 </TooltipTrigger>
@@ -328,7 +347,7 @@ const AddNodeOnEdgeDrop = () => {
               <div className='flex gap-x-2'>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button className="bg-stone-50 cursor-pointer" size="sm" variant="outline">
+                    <Button className="bg-gray-50 cursor-pointer" size="sm" variant="outline">
                       <Webhook />
                     </Button>
                   </TooltipTrigger>
@@ -336,25 +355,25 @@ const AddNodeOnEdgeDrop = () => {
                     <p>ارسال نتیجه (وب‌هوک)</p>
                   </TooltipContent>
                 </Tooltip>
-                <Button className="bg-stone-50 text-base cursor-pointer" size="sm" variant="outline">
+                <Button className="bg-gray-50 text-base cursor-pointer" size="sm" variant="outline">
                   <span>خودکارسازی</span>
                   <CalendarSync />
                 </Button>
-                {hasInterface != undefined && !hasInterface && <Button onClick={onAddInterface} className="bg-stone-50 text-base cursor-pointer" size="sm" variant="outline">
+                {hasInterface != undefined && !hasInterface && <Button onClick={onAddInterface} className="bg-linear-to-r from-pink-400 via-red-400 to-orange-400  text-white hover:text-white text-base cursor-pointer" size="sm" variant="outline">
                   <span>رابط کاربری</span>
-                  <Layout />
+                  <Sparkles />
                 </Button>}
-                {hasInterface != undefined && hasInterface && <Button className="bg-stone-50 text-base cursor-pointer" size="sm" variant="outline">
-                  <span>ویرایش رابط کاربری</span>
-                  <Layout />
+                {hasInterface != undefined && hasInterface && <Button disabled className="bg-gray-300 text-base text-gray-400" size="sm" variant="outline">
+                  <span>رابط کاربری</span>
+                  <Sparkles />
                 </Button>}
               </div>
               <div className='flex items-center space-x-3'>
                 <div className='text-base focus:border-none text-right font-bold cursor-pointer hover:bg-gray-100 border-none py-1  rounded-lg'>
-                  {name ? <InlineEdit value={name} onChange={setName} /> : <SpinnerLoader />}
+                  {name ? <InlineEdit value={name} onChange={setName} className="rtl" /> : <SpinnerLoader />}
                 </div>
                 <Link href="/flows">
-                  <CircleLogoImage />
+                    <img className="object-contain w-10" src="/images/fav.png" />
                 </Link>
               </div>
             </div>
@@ -368,7 +387,7 @@ const AddNodeOnEdgeDrop = () => {
                   <SheetTrigger asChild>
                     {name && nodes && nodes.length == 0 && <div className=' min-h-screen absolute top-0 left-0 right-0 flex items-center justify-center'><Button onClick={() => {
                       setVisibleTools(true)
-                    }} className={`bg-gradient-secondary text-base cursor-pointer absolute z-[1000] hover:bg-gradient hover:text-white text-white px-6`} variant="outline" size={"lg"}>
+                    }} className={`bg-gradient text-base cursor-pointer absolute z-[1000] hover:bg-gradient hover:text-white text-white px-6`} variant="outline" size={"lg"}>
                       <span>اولین فرآیند خود را ایجاد کنید</span>
                       <Plus />
                     </Button>

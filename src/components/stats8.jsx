@@ -7,7 +7,7 @@ const Stats8 = ({
       id: "stat-2",
       icon: Store,
       value: "8 عدد",
-      label: "فرآیندهای مارکت",
+      label: "فرآیندهای در بازارچه",
     },
     {
       id: "stat-1",
@@ -34,11 +34,11 @@ const Stats8 = ({
       <div className="mt-5 grid gap-x-5 grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.id} className="flex flex-col text-lg space-y-4 rounded-lg border border-slate-200 transition-shad{children}ow hover:shadow-sm text-base  px-3 py-4 justify-between items-center mb-5">
-            <div className="text-sky-500 bg-sky-100 p-3 rounded-full ">
+            <div className="text-indigo-500 bg-indigo-100 p-3 rounded-full ">
               <stat.icon size={"32"} />
             </div>
-            <span className=" text-stone-400 text-sm md:text-xl">{stat.label}</span>
-            <div className="font-extrabold">{stat.value}</div>
+            <span className=" text-gray-700 text-sm md:text-xl">{stat.label}</span>
+            <div className=" text-gray-400">{stat.value}</div>
           </div>
         ))}
       </div>

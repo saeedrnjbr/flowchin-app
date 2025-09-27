@@ -6,7 +6,7 @@ function InlineEdit({ value, onChange, placeholder="", className }) {
 
   const handleBlur = () => {
     setEditing(false);
-    onChange(tempValue); // save updated value
+    onChange(tempValue);
   };
 
   const handleKeyDown = (e) => {
@@ -14,7 +14,7 @@ function InlineEdit({ value, onChange, placeholder="", className }) {
       setEditing(false);
       onChange(tempValue);
     } else if (e.key === "Escape") {
-      setTempValue(value); // cancel changes
+      setTempValue(value);
       setEditing(false);
     }
   };

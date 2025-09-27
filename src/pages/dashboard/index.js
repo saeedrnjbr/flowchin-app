@@ -9,3 +9,4 @@ export default function Dashboard() {
     <Stats8 />
   </DashboardLayout>
 }
+  

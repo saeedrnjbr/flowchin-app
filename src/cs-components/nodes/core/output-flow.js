@@ -32,7 +32,7 @@ export default ({ onUpdateNodes, params }) => {
     return <div className="flex flex-col space-y-2">
         <h3 className="font-bold">خروجی‌ها</h3>
         {outputs.map((output, i) => {
-            return <div className="bg-stone-50 rounded-xl">
+            return <div className="bg-gray-50 rounded-xl">
                 <div key={i} className="flex relative flex-col space-y-3 p-4">
                     <X onClick={() => handleDeleteArray(i, setOutputs)} size={12} className=" absolute z-[5000] left-4 top-4  " />
                     <div className="gap-3 grid">

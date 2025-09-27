@@ -46,10 +46,10 @@ const Services = ({ services, setOpen, formik }) => {
             <div key={index}  className="  space-y-6 rounded-lg border border-slate-200 p-4 transition-shad{children}ow hover:shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className={`text-sky-400 bg-sky-100 rounded-full p-3`}>
+                  <div className={`text-indigo-400 bg-indigo-100 rounded-full p-3`}>
                     <Folder size={24} />
                   </div>
-                  <h3 className="text-base font-semibold">{service.name}</h3>
+                  <h3 className="text-base text-gray-700 font-semibold">{service.name}</h3>
                 </div>
                 <div className="flex items-center gap-x-2">
                   <Edit onClick={() => {
@@ -66,25 +66,25 @@ const Services = ({ services, setOpen, formik }) => {
                       <AlertDialogHeader>
                         <AlertDialogTitle></AlertDialogTitle>
                         <AlertDialogDescription className="text-right text-black font-bold">
-                          آیا از حذف آیتم مطمن هستید؟
+                          آیا از حذف آیتم مطمئن هستید؟
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>انصراف</AlertDialogCancel>
-                        <AlertDialogAction  onClick={() => handleDelete(service.id)}>بله</AlertDialogAction>
+                        <AlertDialogAction className="bg-indigo-500" onClick={() => handleDelete(service.id)}>بله</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
                 </div>
               </div>
-              <div className="flex items-center text-stone-400 text-sm  justify-between">
+              <div className="flex items-center text-gray-400 text-sm  justify-between">
                 <p className=" text-justify rtl">
                   {service.description ?? "بدون توضیح"}
                 </p>
                 <div className="inline-flex gap-x-4">
                   <Tooltip>
                     <TooltipTrigger>
-                      <span className="inline-flex gap-x-1"> <Workflow size="16" />{service.flows.length}</span>
+                      <span className="inline-flex text-indigo-500 gap-x-1"> <Workflow size="16" />{service.flows.length}</span>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>تعداد فرآیندها</p>
@@ -92,7 +92,7 @@ const Services = ({ services, setOpen, formik }) => {
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger>
-                      <span className="inline-flex gap-x-1 "> <History size="16" />0</span>
+                      <span className="inline-flex text-teal-500 gap-x-1 "> <History size="16" />0</span>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>تاریخچه اجرا</p>

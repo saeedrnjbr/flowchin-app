@@ -75,7 +75,7 @@ const Navbar = () => {
     <section className="py-4 dot-pattern bg-white shadow-xs">
       <div className="container">
         <nav className="flex items-center justify-between">
-          <Logo size="text-2xl" />
+          <Logo size="w-32" />
           <NavigationMenu className="hidden lg:block">
             <NavigationMenuList>
               <NavigationMenuItem>
@@ -128,7 +128,7 @@ const Navbar = () => {
             </NavigationMenuList>
           </NavigationMenu>
           <div className="hidden items-center gap-2 lg:flex">
-            <Button variant="outline" className="bg-sky-500 text-base text-white">پشتیبانی</Button>
+            <Button variant="outline" className="bg-indigo-500 text-base text-white">پشتیبانی</Button>
             {users.currentError != undefined && <div>
 
               {users.currentError && <Button className="text-base" asChild>
@@ -205,7 +205,7 @@ const Navbar = () => {
                   </a>
                 </div>
                 <div className="mt-6 flex flex-col gap-4">
-                  <Button variant="outline">ورود</Button>
+                  <Button variant="outline" className="bg-gradient-secondary">ورود</Button>
                   <Button>Start for free</Button>
                 </div>
               </div>

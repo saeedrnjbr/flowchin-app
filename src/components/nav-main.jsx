@@ -26,7 +26,7 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className={`text-sm mb-2 text-stone-400 font-bold `}>{title}</SidebarGroupLabel>
+      <SidebarGroupLabel className={`text-base mb-2 text-indigo-300 font-bold `}>{title}</SidebarGroupLabel>
       <SidebarMenu className="space-y-1.5">
         {items.map((item) => (
           <Collapsible key={item.title} asChild defaultOpen={item.isActive}>
@@ -54,13 +54,12 @@ export function NavMain({
                   </CollapsibleContent>
                 </>
               ) : null}
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <Link href={item.url}>
+              <SidebarMenuButton className="hover:bg-indigo-400 hover:text-white" asChild tooltip={item.title}>
+                <Link className=" text-white" href={item.url}>
                   <item.icon />
-                  <span className="text-black">{item.title}</span>
+                  <span className="text-white">{item.title}</span>
                 </Link>
               </SidebarMenuButton>
-             
             </SidebarMenuItem>
           </Collapsible>
         ))}

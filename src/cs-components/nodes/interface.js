@@ -1,301 +1,337 @@
-import { Edit, Link, Plus, Upload, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { CopySlash, Edit, Layout, Trash, Upload } from "lucide-react"
+import { useEffect, useState, useRef } from "react"
 import { useSelector } from "react-redux"
-import DatePicker from "react-multi-date-picker"
-import persian from "react-date-object/calendars/persian"
-import persian_fa from "react-date-object/locales/persian_fa"
-
-import {
-    Dialog,
-    DialogContent,
-} from "@/components/ui/dialog"
-
-import { Handle, Position } from '@xyflow/react';
-import { CSS } from '@dnd-kit/utilities';
-
-import {
-    DndContext,
-    closestCenter,
-    PointerSensor,
-    useSensor,
-    useSensors,
-    KeyboardSensor,
-    useDraggable,
-    useDroppable,
-} from "@dnd-kit/core";
+import { useImmer } from "use-immer";
 
 import {
     arrayMove,
     SortableContext,
-    useSortable,
     verticalListSortingStrategy,
-    sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 
+import Canvas from "./dnd/canvas";
+import Sidebar from "./dnd/sidebar";
+
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+} from "@/components/ui/dialog"
+
+import { Handle, NodeToolbar, Position } from '@xyflow/react';
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Switch } from "@/components/ui/switch"
 import { BASE_URL_UI } from "@/pages/api"
-import { useSearchParams } from "next/navigation"
+import { DndContext, MouseSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core"
 import InlineEdit from "../inline-edit"
+import { Button } from "@/components/ui/button"
+import FormViewer from "../form-viewer"
+import UppyUploader from "../uppy-uploader";
+import { useSearchParams } from "next/navigation";
 
-function SortableItem({ id, element, handleDelete, onUpdateItems }) {
 
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-        id,
-    });
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        zIndex: isDragging ? 50 : "auto",
-    };
-
-    const handleInputEdit = (value) => {
-        onUpdateItems( prevValues => prevValues.map( item => 
-            item.id == element.id ? {
-                ...item,
-                data: {
-                    ...item.data,
-                    current: {
-                        ...item.data.current,
-                        label: value 
-                    }
-                }
-            } : item
-        ))
-    }
-
-    return (
-        <li
-            ref={setNodeRef}
-            style={style}
-            {...attributes}
-            {...listeners}
-            className="relative bg-white"
-        >
-
-            {element.type != "heading" && element.type != "description" && element.type != "divier" && <div className="flex hover:cursor-pointer border  px-3  flex-col space-y-3 py-5 rounded-xl">
-                <div className=" flex items-center justify-between">
-                    <div className="flex gap-x-1 w-full items-center">
-                        <svg className="size-4 text-stone-300 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M10,4A2,2,0,1,1,8,2,2,2,0,0,1,10,4ZM8,10a2,2,0,1,0,2,2A2,2,0,0,0,8,10Zm0,8a2,2,0,1,0,2,2A2,2,0,0,0,8,18ZM16,6a2,2,0,1,0-2-2A2,2,0,0,0,16,6Zm0,8a2,2,0,1,0-2-2A2,2,0,0,0,16,14Zm0,8a2,2,0,1,0-2-2A2,2,0,0,0,16,22Z"></path></g></svg>
-                        <InlineEdit placeholder="عنوان" onChange={handleInputEdit} value={element.label ?? "عنوان"} className="w-full" />
-                    </div>
-                    <X onClick={() => handleDelete(element.id)} size={16} />
-                </div>
-                {element.type == "select" && <select className="border border-stone-200 w-sm p-2 rounded">
-                    <option>Option1</option>
-                    <option>Option2</option>
-                </select>}
-                {element.type == "email" && <input placeholder="name@example.com" className="border w-sm border-stone-200 p-2 rounded" type="email" />}
-                {element.type == "field" && <input placeholder="اطلاعات را وارد نمایید" className="border w-sm border-stone-200 p-2 rounded" type="text" />}
-                {element.type == "datepicker" && <DatePicker placeholder="۱۴۰۴/۰۷/۰۱" calendar={persian} locale={persian_fa} style={{ width: "50%", borderColor: "#e4e4e4", paddingTop: "20px", paddingBottom: "20px" }} />}
-                {element.type == "number" && <input placeholder="مقدار را وارد نمایید" className="border  w-sm border-stone-200 p-2 rounded" type="number" />}
-                {element.type == "checkbox" && <div className="ltr p-2"><Switch size="lg" /></div>}
-                {element.type == "file" && <input className="border w-sm border-stone-200 p-2 rounded" type="file" />}
-            </div>}
-            {(element.type == "heading" || element.type == "description" || element.type == "divier") && <div className="flex hover:cursor-pointer border  px-3  flex-col space-y-2 py-5 rounded-xl">
-                <div className="relative">
-                    <div className="flex gap-x-1 items-center">
-                        <svg className="size-4 text-stone-300 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M10,4A2,2,0,1,1,8,2,2,2,0,0,1,10,4ZM8,10a2,2,0,1,0,2,2A2,2,0,0,0,8,10Zm0,8a2,2,0,1,0,2,2A2,2,0,0,0,8,18ZM16,6a2,2,0,1,0-2-2A2,2,0,0,0,16,6Zm0,8a2,2,0,1,0-2-2A2,2,0,0,0,16,14Zm0,8a2,2,0,1,0-2-2A2,2,0,0,0,16,22Z"></path></g></svg>
-                        {element.type == "heading" && <InlineEdit placeholder="عنوان" onChange={handleInputEdit} value={element.label ?? "عنوان"} className=" cursor-text text-2xl placeholder-gray-900 font-bold w-full" />}
-                        {element.type == "description" && <InlineEdit placeholder="توضیحات را وارد نمایید" onChange={handleInputEdit} value={element.label ?? "توضیحات"} className="cursor-text  w-full" />}
-                        {element.type == "divier" && <div className="border-b w-full border-stone-200 border"></div>}
-                    </div>
-                    <X size={16} onClick={() => handleDelete(element.id)} className=" absolute left-0 -top-3" />
-                </div>
-            </div>}
-        </li>
-    );
+function getData(prop) {
+    return prop?.data?.current ?? {};
 }
 
-export default ({ onUpdateNodes, params }) => {
+function createSpacer({ id }) {
+    return {
+        id,
+        type: "spacer",
+        title: "spacer",
+    };
+}
+
+
+export default ({ onUpdateNodes, meta, params, handleDelete }) => {
 
     const elements = useSelector(state => state.elements)
-    const [icon, setIcon] = useState(params ? params.icon : "")
+    const [cover, setCover] = useState(params ? params.cover : null)
+    const [icon, setIcon] = useState(params ? params.icon : null)
     const [title, setTitle] = useState(params ? params.title : "عنوان رابط کاربری")
     const [link, setLink] = useState(params ? params.link : "")
     const [description, setDescription] = useState(params ? params.description : "توضیحات مرتبط")
     const [showDialog, setShowDialog] = useState(false)
-    const [items, setItems] = useState(params ? params.items : []);
-    const [dropped, setDropped] = useState(false);
-    const [flowId, setFlowId] = useState();
-    const searchParams = useSearchParams()
+    const [sidebarFieldsRegenKey, setSidebarFieldsRegenKey] = useState(
+        Date.now()
+    );
+    useEffect(() => {
+        if (link == "") {
+            setLink(`${BASE_URL_UI}/interface/${meta.unique_id}`)
+        }
+    }, [meta])
+
+    const spacerInsertedRef = useRef();
+    const currentDragFieldRef = useRef();
+    const [data, updateData] = useImmer({
+        fields: params ? params.fields : [],
+    });
+    const [copied, setCopied] = useState(false);
+
+    const handleCoverUpload = coverFile => setCover(coverFile.file_url)
+
+    const handleIconUpload = iconFile => setIcon(iconFile.file_url)
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(link);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000); // reset after 2s
+        } catch (err) {
+            console.error("Failed to copy: ", err);
+        }
+    };
+
+    const { fields } = data
 
     useEffect(() => {
         onUpdateNodes({
             icon,
+            cover,
+            fields,
+            link,
             title,
             description,
-            items
         })
-    }, [icon, title, description, items])
+    }, [icon, title, description, fields, link, cover])
 
-    const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-    );
 
-    useEffect(() => {
-        setFlowId(searchParams.get("flow_id"))
-    }, [searchParams])
+    const cleanUp = () => {
+        currentDragFieldRef.current = null;
+        spacerInsertedRef.current = false;
+    };
 
-    const handleSortDragEnd = (event) => {
-        const { active, over } = event;
-        if (!over || active.id === over.id) return;
+    const handleDragStart = (e) => {
+        const { active } = e;
+        const activeData = getData(active);
+        if (activeData.fromSidebar) {
+            const { field } = activeData;
+            currentDragFieldRef.current = {
+                id: active.id,
+                element_id: field.id,
+                label: field.label === "" ? field.name : field.label,
+                type: field.type
+            };
+            return;
+        }
 
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
+        const { field, index } = activeData;
 
-        setItems((prev) => arrayMove(prev, oldIndex, newIndex));
+        currentDragFieldRef.current = field;
 
-    }
-
-    const DraggableItem = ({ id, children, meta }) => {
-
-        const { attributes, listeners, setNodeRef, transform } = useDraggable({
-            id,
-            data: meta,
+        updateData((draft) => {
+            draft.fields.splice(index, 1, createSpacer({ id: active.id }));
         });
+    };
 
-        const style = {
-            transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined,
-        };
 
-        return (
-            <div ref={setNodeRef} {...listeners} {...attributes} style={style}>
-                {children}
-            </div>
-        );
+    const onDeleteField = (fieldId) => updateData((draft) => {
+        draft.fields = draft.fields.filter((f) => f.id !== fieldId);
+    });
+
+    const onChangeField = (field, value, {
+        is_required = false,
+        guide_description = "",
+        default_value = "",
+        min_value = "",
+        placeholder = "",
+        max_value = "",
+        checked = false,
+        options = []
+    }) => {
+        updateData((draft) => {
+            const index = draft.fields.findIndex((f) => f.id === field.id);
+            draft.fields[index].label = value
+            draft.fields[index].is_required = is_required
+            draft.fields[index].placeholder = placeholder
+            draft.fields[index].guide_description = guide_description
+            draft.fields[index].default_value = default_value
+            draft.fields[index].min_value = min_value
+            draft.fields[index].max_value = max_value
+            draft.fields[index].options = options
+            draft.fields[index].checked = checked
+        });
     }
 
-    const DroppableArea = ({ id, children }) => {
-        const { setNodeRef, isOver } = useDroppable({ id });
-        return (
-            <div ref={setNodeRef}
-                className={`
-                    ${isOver ? "border-2 pb-40 bg-sky-50 p-4 border-sky-400 border-dashed" : ""}
-                    ${!dropped ? "border-2 border-stone-200 border-dashed" : ""}
-                `} >
-                {children}
-            </div>
-        );
-    }
+    const handleDragOver = (e) => {
+        const { active, over } = e;
+        const activeData = getData(active);
 
-    const handleDelete = id => setItems((prevNodes) => prevNodes.filter((node) => node.id !== id))
+        if (activeData.fromSidebar) {
 
-    const handleDragEnd = (event) => {
-        const { active, over } = event;
-        if (over && active.id !== over.id) {
-            setDropped(true)
-            setItems((prev) => {
-                const updatedItems = [...prev];
-                updatedItems.push(active)
-                return updatedItems;
+            const overData = getData(over);
+
+            if (!spacerInsertedRef.current) {
+                const spacer = createSpacer({
+                    id: active.id + "-spacer",
+                });
+
+                updateData((draft) => {
+                    if (!draft.fields.length) {
+                        draft.fields.push(spacer);
+                    } else {
+                        const nextIndex =
+                            overData.index > -1 ? overData.index : draft.fields.length;
+
+                        draft.fields.splice(nextIndex, 0, spacer);
+                    }
+                    spacerInsertedRef.current = true;
+                });
+            } else if (!over) {
+                updateData((draft) => {
+                    draft.fields = draft.fields.filter((f) => f.type !== "spacer");
+                });
+                spacerInsertedRef.current = false;
+            } else {
+                // we need to make sure we're updating the spacer position to reflect where our drop will occur.
+                // We find the spacer and then swap it with the over skipping the op if the two indexes are the same
+                updateData((draft) => {
+                    const spacerIndex = draft.fields.findIndex(
+                        (f) => f.id === active.id + "-spacer"
+                    );
+
+                    const nextIndex =
+                        overData.index > -1 ? overData.index : draft.fields.length - 1;
+
+                    if (nextIndex === spacerIndex) {
+                        return;
+                    }
+
+                    draft.fields = arrayMove(draft.fields, spacerIndex, overData.index);
+                });
+            }
+        }
+    };
+
+    const handleDragEnd = (e) => {
+        const { over } = e;
+
+        // We dropped outside of the over so clean up so we can start fresh.
+        if (!over) {
+            cleanUp();
+            updateData((draft) => {
+                draft.fields = draft.fields.filter((f) => f.type !== "spacer");
+            });
+            return;
+        }
+
+        let nextField = currentDragFieldRef.current;
+
+        if (nextField) {
+            const overData = getData(over);
+            updateData((draft) => {
+                const spacerIndex = draft.fields.findIndex((f) => f.type === "spacer");
+                draft.fields.splice(spacerIndex, 1, nextField);
+                draft.fields = arrayMove(
+                    draft.fields,
+                    spacerIndex,
+                    overData.index || 0
+                );
             });
         }
-    }
 
+        setSidebarFieldsRegenKey(Date.now());
+        cleanUp();
+    };
+
+    const sensors = useSensors(
+        useSensor(MouseSensor, {
+            activationConstraint: {
+                distance: 10,
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 250,
+                tolerance: 5,
+            },
+        }),
+    );
 
     return <>
+        <NodeToolbar>
+            <div className="flex gap-2 flex-wrap">
+                <div className="divide-x divide-muted-foreground text-black ">
+                    <Button onClick={handleDelete} size="sm" className="rounded-none hover:bg-gray-100 cursor-pointer bg-white text-red-400 font-bold first:rounded-l-md last:rounded-r-md border-l border border-gray-200">
+                        <div className='flex gap-x-2 items-center'>
+                            <span>حذف</span>
+                            <Trash />
+                        </div>
+                    </Button>
+                    <Button onClick={() => setShowDialog(true)} size="sm" className="rounded-none hover:bg-gray-100 cursor-pointer bg-white text-black font-bold first:rounded-l-md last:rounded-r-md border-l border border-gray-200">
+                        <div className='flex gap-x-2 items-center'>
+                            <span>تنظیمات رابط‌ کاربری</span>
+                            <Layout />
+                        </div>
+                    </Button>
+                </div>
+            </div>
+        </NodeToolbar>
         <div className=" noding rounded-xl">
             <div className="bg-white shadow-sm shadow-black/25 text-xs min-w-lg rounded-xl rtl py-1">
                 <div className="flex flex-col space-y-2 relative">
                     <Dialog onOpenChange={() => setShowDialog(false)} open={showDialog}>
-                        <DialogContent className="sm:min-w-7xl">
+                        <DialogContent description="" className="sm:min-w-7xl">
                             <ScrollArea className="h-[750px] rtl">
-                                <DndContext onDragEnd={handleDragEnd}>
-                                    <div className=" grid grid-cols-12 p-8  gap-x-4">
+                                <DndContext
+                                    onDragStart={handleDragStart}
+                                    onDragOver={handleDragOver}
+                                    onDragEnd={handleDragEnd}
+                                    sensors={sensors}
+                                    autoScroll
+                                >
+                                    <div className=" grid grid-cols-12 gap-x-10 px-8">
                                         <div className="col-span-3">
-                                            {elements.data.length > 0 && <div className="flex space-y-3 flex-col">
-                                                {elements.data.map((element, el) => {
-                                                    return <DraggableItem meta={element} id={element.id} index={el}>
-                                                        <div key={el} style={{ zIndex: 10000 }} className="p-2 bg-white cursor-pointer hover:shadow-sm flex justify-between items-center border rounded-lg">
-                                                            <div className="flex items-center gap-x-3">
-                                                                <div className=" bg-sky-100 p-2 rounded-xl">
-                                                                    <img className="w-5" src={element.icon_url} />
-                                                                </div>
-                                                                <span className="font-bold text-sm">{element.name}</span>
-                                                            </div>
-                                                            <Plus size={16} className=" text-stone-400" />
-                                                        </div>
-                                                    </DraggableItem>
-                                                })}
-                                            </div>}
+                                            <Sidebar elements={elements} fieldsRegKey={sidebarFieldsRegenKey} />
                                         </div>
-                                        <div className="col-span-9 px-8">
-                                            <div className=" relative flex items-center justify-center    cursor-pointer min-h-44 bg-stone-100 rounded-xl">
-                                                <div className="flex gap-x-2 text-stone-500">
-                                                    <Upload size={24} />
-                                                    <p className="font-bold">آپلود تصویر کاور </p>
-                                                </div>
-                                                <div className=" absolute right-6 -bottom-16 flex h-24 w-24 cursor-pointer items-center justify-center rounded-lg bg-background hover:bg-muted shadow-md ">
-                                                    انتخاب آیکون
-                                                </div>
+                                        <div className="col-span-9">
+                                            <div style={{ background: cover != null ? `url(${cover})` : "#EEE" }} className=" relative flex uppy-centerize items-center justify-center   min-h-44 bg-gray-100 rounded-xl">
+                                                <UppyUploader onUploaded={handleCoverUpload} id="dropzone-cover">
+                                                    <div className="flex gap-x-2 bg-white p-2 rounded-full px-6 shadow cursor-pointer text-gray-500">
+                                                        <Upload size={24} />
+                                                        <p className="font-bold">آپلود تصویر کاور </p>
+                                                    </div>
+                                                </UppyUploader>
+                                                <UppyUploader onUploaded={handleIconUpload} id="dropzone-icon">
+                                                    <div style={{ background: icon != null ? `url(${icon})` : "#FFF" }} className=" absolute  uppy-centerize right-6 -bottom-8 flex h-24 w-24  z-50 cursor-pointer items-center justify-center rounded-full bg-white hover:bg-muted shadow-md ">
+                                                       {icon == null ?  <span>انتخاب آیکون</span> : "" } 
+                                                    </div>
+                                                </UppyUploader>
                                             </div>
                                             <div className="flex flex-col space-y-4 pt-24">
                                                 <InlineEdit value={title} onChange={setTitle} placeholder="عنوان رابط کاربری" className=" cursor-text  placeholder-gray-900 font-bold" />
-                                                <InlineEdit value={description} onChange={setDescription} placeholder="توضیحات مرتبط" className="cursor-text  text-stone-500" />
+                                                <InlineEdit value={description} onChange={setDescription} placeholder="توضیحات مرتبط" className="cursor-text  text-gray-500" />
                                             </div>
-                                            <div className="my-10 dropable-items">
-                                                <DroppableArea id="drop-zone">
-                                                    <DndContext
-                                                        sensors={sensors}
-                                                        collisionDetection={closestCenter}
-                                                        onDragEnd={handleSortDragEnd}
-                                                    >
-                                                        <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-                                                            {items.length > 0 && <ul className="space-y-3">
-                                                                {items.map((it) => <SortableItem onUpdateItems={setItems} handleDelete={handleDelete} key={it.id} id={it.id} element={it.data.current} />)}
-                                                            </ul>}
-                                                            {items.length == 0 && <div className=" flex items-center  text-stone-400 h-[200px] justify-center">فیلد مورد نظر را در اینجا بکشید</div>}
-                                                        </SortableContext>
-                                                    </DndContext>
-                                                </DroppableArea>
-                                            </div>
+                                            <SortableContext
+                                                strategy={verticalListSortingStrategy}
+                                                items={fields.map((f) => f.id)}
+                                            >
+                                                <Canvas onDeleteField={onDeleteField} onChangeField={onChangeField} fields={fields} />
+                                            </SortableContext>
                                         </div>
                                     </div>
                                 </DndContext>
                             </ScrollArea>
+                            <DialogFooter className="bg-gray-100 py-4 px-8">
+                                <Button onClick={() => setShowDialog(false)} className="text-xl cursor-pointer" type="outline">تایید</Button>
+                            </DialogFooter>
                         </DialogContent>
                     </Dialog>
-                    <div onClick={() => setShowDialog(true)} className=" relative flex items-center justify-center min-h-24 m-2 cursor-pointer bg-stone-100  rounded-xl">
-                        <div className="flex gap-x-2 text-stone-500">
+                    <div style={{ background: cover != null ? `url(${cover})` : "#EEE" }} onClick={() => setShowDialog(true)} className=" relative uppy-centerize flex items-center justify-center min-h-24 m-2 cursor-pointer bg-gray-100  rounded-xl">
+                        {cover == null && <div className="flex gap-x-2 text-gray-500">
                             <Edit size={16} />
                             <p className="font-bold">ویرایش رابط کاربری</p>
-                        </div>
-                        <div className=" absolute text-xs right-6 -bottom-12 flex h-16 w-16 cursor-pointer items-center justify-center rounded-lg bg-background hover:bg-muted shadow-md ">
-                            <span className="w-10 text-center">انتخاب آیکون</span>
+                        </div>}
+                        <div style={{ background: icon != null ? `url(${icon})` : "#FFF" }} className=" absolute uppy-centerize text-xs right-6 -bottom-8 flex h-16 w-16  cursor-pointer items-center justify-center rounded-full bg-background hover:bg-muted shadow-md ">
+                            {icon == null && <span className="w-10 text-center">انتخاب آیکون</span>}
                         </div>
                     </div>
                     <div className="flex flex-col px-3 pb-4 space-y-3 pt-16">
                         <span onClick={() => setShowDialog(true)} className=" cursor-pointer hover:bg-gray-100 placeholder-gray-900 font-bold">{title}</span>
-                        <p onClick={() => setShowDialog(true)} className="cursor-pointer hover:bg-gray-100 text-stone-400">{description}</p>
-                        {items.length > 0 && <>
-                            <ul className="flex flex-col space-y-5 py-5 px-2 pb-10">
-                                {items.map((item, el) => {
-                                    let element = item.data.current
-                                    return <li key={el} className="flex flex-col space-y-3">
-                                        {element.type != "heading" && element.type != "description" && element.type != "divier" && <span>{element.label}</span>}
-                                        {element.type == "select" && <select className="border border-stone-200 w-sm p-2 rounded">
-                                            <option>Option1</option>
-                                            <option>Option2</option>
-                                        </select>}
-                                        {element.type == "email" && <input placeholder="name@example.com" className="border w-sm border-stone-200 p-2 rounded" type="email" />}
-                                        {element.type == "field" && <input placeholder="اطلاعات را وارد نمایید" className="border w-sm border-stone-200 p-2 rounded" type="text" />}
-                                        {element.type == "datepicker" && <DatePicker placeholder="۱۴۰۴/۰۷/۰۱" calendar={persian} locale={persian_fa} style={{ width: "50%", borderColor: "#e4e4e4", paddingTop: "20px", paddingBottom: "20px" }} />}
-                                        {element.type == "number" && <input placeholder="مقدار را وارد نمایید" className="border  w-sm border-stone-200 p-2 rounded" type="number" />}
-                                        {element.type == "checkbox" && <div className="ltr p-2"><Switch size="lg" /></div>}
-                                        {element.type == "file" && <input className="border w-sm border-stone-200 p-2 rounded" type="file" />}
-                                        {element.type == "heading" && <h3 className=" cursor-text text-lg placeholder-gray-900 font-bold w-full">{element.label}</h3>}
-                                        {element.type == "description" && <p className="cursor-text  w-full">{element.label}</p>}
-                                        {element.type == "divier" && <div className="border-b w-full border-stone-200 border"></div>}
-                                    </li>
-                                })}
-                            </ul>
-                        </>}
-                        <div className="relative">
-                            <div className="cursor-pointer hover:bg-gray-100 w-full border py-3 rounded-lg text-left text-xs ltr px-8 link-font text-stone-400">{BASE_URL_UI}/interface/${flowId}</div>
-                            <Link className=" absolute left-4 top-4 text-stone-500 " size={12} />
+                        <p onClick={() => setShowDialog(true)} className="cursor-pointer max-w-lg hover:bg-gray-100 text-gray-400">{description}</p>
+                        <FormViewer fields={fields} />
+                        <div onClick={handleCopy} className="relative">
+                            <div className={`cursor-pointer ${copied ? " bg-linear-to-r from-gray-500 via-green-500 to-emerald-400 text-white text-center" : "text-left  text-gray-500"} w-full border py-3 rounded-lg  text-xs ltr px-8 link-font`}>{copied ? "کپی شد" : link}</div>
+                            <CopySlash className={`absolute left-3 top-3.5 ${copied ? "text-white" : "text-gray-500"}`} size={16} />
                         </div>
                     </div>
                 </div>

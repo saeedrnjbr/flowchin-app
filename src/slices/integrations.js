@@ -22,6 +22,7 @@ const integrationSlice = createSlice({
             state.isLoading = true;
             state.error = false;
             state.data = [];
+            state.interfaceData = undefined
         })
         builder.addCase(fetchCoreIntegrations.fulfilled, (state, action) => {
             state.isLoading = false;

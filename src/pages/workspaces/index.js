@@ -66,7 +66,7 @@ function WorkspaceDialog({ open, setOpen, formik }) {
             </div>
           </div>
           <DialogFooter>
-            <Button className="mt-5 bg-sky-500 cursor-pointer" type="submit">
+            <Button className="mt-5 bg-indigo-500 cursor-pointer" type="submit">
               ذخیره
             </Button>
           </DialogFooter>
@@ -78,7 +78,7 @@ function WorkspaceDialog({ open, setOpen, formik }) {
 
 export default function Dashboard() {
   const dispatch = useDispatch()
-  const { workspacesData, workspacesIsLoading, error, message } = useSelector(state => state.workspaces)
+  const workspaces = useSelector(state => state.workspaces)
 
   const [submitted, setSubmitted] = useState(false)
   const [open, setOpen] = useState(false)
@@ -102,24 +102,20 @@ export default function Dashboard() {
     }
   }, [open])
 
-  // handle submission result
-  useEffect(() => {
-    if (!submitted) return
 
-    if (workspacesData?.length > 0) {
-      toast.custom(() => <CustomToast action="success" message="عملیات با موفقیت انجام شد" />)
-      setOpen(false)
-      dispatch(fetchWorkspaces())
-    }
-
-    if (error) {
-      toast.custom(() => <CustomToast action="error" message={message} />)
-    }
-
+  if (workspaces.data?.length > 0 && submitted) {
+    toast.custom(() => <CustomToast action="success" message="عملیات با موفقیت انجام شد" />)
+    setOpen(false)
+    dispatch(fetchWorkspaces())
     setSubmitted(false)
-  }, [submitted, workspacesData, error, message, dispatch])
+  }
 
-  if (workspacesIsLoading) {
+  if (workspaces.error && submitted) {
+    toast.custom(() => <CustomToast action="error" message={workspaces.message} />)
+    setSubmitted(false)
+  }
+
+  if (workspaces.workspacesIsLoading) {
     return (
       <DashboardLayout>
         <div className="container">
@@ -144,16 +140,17 @@ export default function Dashboard() {
         <WorkspaceDialog open={open} setOpen={setOpen} formik={formik} />
       </DashboardHeader>
 
-      {workspacesData?.length > 0 && (
-        <Services formik={formik} setOpen={setOpen} services={workspacesData} />
+      {workspaces.workspacesData?.length > 0 && (
+        <Services formik={formik} setOpen={setOpen} services={workspaces.workspacesData} />
       )}
 
-      {workspacesData?.length === 0 && (
-        <div className="text-stone-200 flex flex-col items-center justify-center space-y-2 py-5 rounded-lg border-slate-200">
+      {workspaces.workspacesData?.length === 0 && (
+        <div className="text-gray-200 flex flex-col items-center justify-center space-y-2 py-5 rounded-lg border-slate-200">
           <FolderClosed size={50} />
-          <span className="text-stone-400 text-lg">پوشه‌ای تعریف نشده است</span>
+          <span className="text-gray-400 text-lg">پوشه‌ای تعریف نشده است</span>
         </div>
       )}
+      
     </DashboardLayout>
   )
 }

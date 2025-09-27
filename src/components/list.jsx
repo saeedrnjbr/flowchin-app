@@ -19,11 +19,11 @@ export default ({ items, loading = false, title = "", setDropedNode }) => {
             <div className="flex  justify-between items-center w-full">
                 <div className="flex flex-col gap-1">
                     <h3 className="font-semibold text-sm">{item.name}</h3>
-                    <p className="text-xs line-clamp-3 text-stone-400">
+                    <p className="text-xs line-clamp-3 text-gray-400">
                         {item.description}
                     </p>
                 </div>
-                {item.children && <ChevronLeft size={"16"} className="text-stone-500" />}
+                {item.children && <ChevronLeft size={"16"} className="text-gray-500" />}
             </div>
         </div>
     </div>
@@ -83,7 +83,7 @@ export default ({ items, loading = false, title = "", setDropedNode }) => {
                                         </div>
                                         <div className="animate-pulse bg-gray-200 rounded-full w-6 h-6"></div>
                                     </div>
-                                  </div>
+                                </div>
                             </div>
                             <div className="rtl p-2 px-4 cursor-pointer">
                                 <div className="order-2 w-full flex items-center gap-2 md:order-none">
@@ -177,9 +177,9 @@ export default ({ items, loading = false, title = "", setDropedNode }) => {
                 <div className="flex flex-col">
 
                     {listItems.map((item, index) => {
-                        if (item.type == "core") {
+                        if (item.type == "core" && item.slug != "interface") {
                             if (item.slug == null) {
-                                return <div onClick={ () => handleItemClick(item)} key={index} >
+                                return <div onClick={() => handleItemClick(item)} key={index} >
                                     <IntegrationItem item={item} />
                                 </div>
                             } else {
@@ -190,12 +190,12 @@ export default ({ items, loading = false, title = "", setDropedNode }) => {
                         }
                     })}
 
-                    {depth == 0 && <span className="block p-4 text-stone-500">ابزارها</span>}
+                    {depth == 0 && <span className="block p-4 text-gray-500">ابزارها</span>}
 
                     {listItems.map((item, index) => {
                         if (item.type == "tools") {
                             if (item.slug == null) {
-                                return <div onClick={ () => handleItemClick(item)} key={index} >
+                                return <div onClick={() => handleItemClick(item)} key={index} >
                                     <IntegrationItem item={item} />
                                 </div>
                             } else {

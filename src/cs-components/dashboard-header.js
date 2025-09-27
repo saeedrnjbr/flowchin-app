@@ -3,7 +3,7 @@ export default ({ title = "", description = "", children }) => {
         <div className="flex items-center justify-between">
             <div className="flex flex-col space-y-3 my-5">
                 <span className="text-2xl font-bold">{title}</span>
-                {description && <p className=" text-stone-400 text-base text-justify rtl">{description}</p>}
+                {description && <p className=" text-gray-400 text-base font-thin text-justify rtl">{description}</p>}
             </div>
             {children}
         </div>

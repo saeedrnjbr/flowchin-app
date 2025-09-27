@@ -28,8 +28,10 @@
     "@reduxjs/toolkit": "^2.8.2",
     "@uppy/core": "^5.0.2",
     "@uppy/dashboard": "^5.0.2",
-    "@uppy/react": "^5.0.3",
+    "@uppy/locales": "^5.0.1",
+    "@uppy/react": "^5.1.0",
     "@uppy/status-bar": "^5.0.1",
+    "@uppy/thumbnail-generator": "^5.0.1",
     "@uppy/xhr-upload": "^5.0.1",
     "@xyflow/react": "^12.8.4",
     "class-variance-authority": "^0.7.1",
@@ -55,6 +57,7 @@
     "react-simple-wysiwyg": "^3.4.1",
     "react-top-loading-bar": "^3.0.2",
     "tailwind-merge": "^3.3.1",
+    "use-immer": "^0.11.0",
     "vaul": "^1.1.2"
   },
   "devDependencies": {

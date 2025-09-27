@@ -2,6 +2,7 @@ import { fetchCreateWorkspace, fetchWorkspaceDelete, fetchWorkspaces } from "@/p
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
+   
     isLoading: false,
     data: [],
     message: "",

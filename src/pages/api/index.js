@@ -1,13 +1,13 @@
 
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-export const BASE_URL = "http://localhost:8000/api"
+export const BASE_URL = "http://localhost:8000"
 export const BASE_URL_UI = "http://localhost:3000"
 
 // export const BASE_URL = "https://admin.mylancerhub.app/api"
 
 export const fetchUserLogin = createAsyncThunk("fetchUserLogin", async (data) => {
-    const res = await fetch(`${BASE_URL}/users/login`, {
+    const res = await fetch(`${BASE_URL}/api/users/login`, {
         headers: {
             "Content-Type": "application/json",
             "Accept": "application/json",
@@ -21,7 +21,7 @@ export const fetchUserLogin = createAsyncThunk("fetchUserLogin", async (data) =>
 
 
 export const fetchUserVerify = createAsyncThunk("fetchUserVerify", async (data) => {
-    const res = await fetch(`${BASE_URL}/users/verify`, {
+    const res = await fetch(`${BASE_URL}/api/users/verify`, {
         headers: {
             "Content-Type": "application/json",
             "Accept": "application/json",
@@ -33,7 +33,7 @@ export const fetchUserVerify = createAsyncThunk("fetchUserVerify", async (data) 
 });
 
 export const fetchUserCurrent = createAsyncThunk("fetchUserCurrent", async () => {
-    const res = await fetch(`${BASE_URL}/user`, {
+    const res = await fetch(`${BASE_URL}/api/user`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Accept": "application/json",
@@ -43,7 +43,7 @@ export const fetchUserCurrent = createAsyncThunk("fetchUserCurrent", async () =>
 });
 
 export const fetchCreateWorkspace = createAsyncThunk("fetchCreateWorkspace", async (data) => {
-    const res = await fetch(`${BASE_URL}/workspaces${data.id ? "/" + data.id : ""}`, {
+    const res = await fetch(`${BASE_URL}/api/workspaces${data.id ? "/" + data.id : ""}`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Content-Type": "application/json",
@@ -57,7 +57,7 @@ export const fetchCreateWorkspace = createAsyncThunk("fetchCreateWorkspace", asy
 
 
 export const fetchCreateFlow = createAsyncThunk("fetchCreateFlow", async (data) => {
-    const res = await fetch(`${BASE_URL}/flows${data.id ? "/" + data.id : ""}`, {
+    const res = await fetch(`${BASE_URL}/api/flows${data.id ? "/" + data.id : ""}`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Content-Type": "application/json",
@@ -70,7 +70,7 @@ export const fetchCreateFlow = createAsyncThunk("fetchCreateFlow", async (data) 
 });
 
 export const fetchUpdateFlowWorkspace = createAsyncThunk("fetchUpdateFlowWorkspace", async (data) => {
-    const res = await fetch(`${BASE_URL}/flows/workspace/${data.id}`, {
+    const res = await fetch(`${BASE_URL}/api/flows/workspace/${data.id}`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Content-Type": "application/json",
@@ -98,7 +98,7 @@ export const fetchUpdateFlow = createAsyncThunk("fetchUpdateFlow", async (data) 
 
   form.append('discount', data["discount"] ?? 0);    
 
-  const res = await fetch(`${BASE_URL}/flows/${data.id}`, {
+  const res = await fetch(`${BASE_URL}/api/flows/${data.id}`, {
     headers: {
       "Accept": "application/json",
       "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
@@ -111,7 +111,7 @@ export const fetchUpdateFlow = createAsyncThunk("fetchUpdateFlow", async (data) 
 
 
 export const fetchDeleteFlow = createAsyncThunk("fetchDeleteFlow", async (data) => {
-    const res = await fetch(`${BASE_URL}/flows/delete/${data.id}`, {
+    const res = await fetch(`${BASE_URL}/api/flows/delete/${data.id}`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Content-Type": "application/json",
@@ -122,7 +122,7 @@ export const fetchDeleteFlow = createAsyncThunk("fetchDeleteFlow", async (data) 
 });
 
 export const fetchDuplicateFlow = createAsyncThunk("fetchDuplicateFlow", async (data) => {
-    const res = await fetch(`${BASE_URL}/flows/copy/${data.id}`, {
+    const res = await fetch(`${BASE_URL}/api/flows/copy/${data.id}`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Content-Type": "application/json",
@@ -133,7 +133,7 @@ export const fetchDuplicateFlow = createAsyncThunk("fetchDuplicateFlow", async (
 });
 
 export const fetchFlows = createAsyncThunk("fetchFlows", async (id) => {
-    const res = await fetch(`${BASE_URL}/flows`, {
+    const res = await fetch(`${BASE_URL}/api/flows`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Accept": "application/json",
@@ -144,7 +144,7 @@ export const fetchFlows = createAsyncThunk("fetchFlows", async (id) => {
 
 
 export const fetchFlow = createAsyncThunk("fetchFlow", async (id) => {
-    const res = await fetch(`${BASE_URL}/flows/${id}`, {
+    const res = await fetch(`${BASE_URL}/api/flows/${id}`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Accept": "application/json",
@@ -154,7 +154,7 @@ export const fetchFlow = createAsyncThunk("fetchFlow", async (id) => {
 });
 
 export const fetchWorkspaces = createAsyncThunk("fetchWorkspaces", async () => {
-    const res = await fetch(`${BASE_URL}/workspaces`, {
+    const res = await fetch(`${BASE_URL}/api/workspaces`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Accept": "application/json",
@@ -165,7 +165,7 @@ export const fetchWorkspaces = createAsyncThunk("fetchWorkspaces", async () => {
 
 
 export const fetchWorkspaceDelete = createAsyncThunk("fetchWorkspaceDelete", async ({ id }) => {
-    const res = await fetch(`${BASE_URL}/workspaces/delete/${id}`, {
+    const res = await fetch(`${BASE_URL}/api/workspaces/delete/${id}`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Accept": "application/json",
@@ -175,7 +175,7 @@ export const fetchWorkspaceDelete = createAsyncThunk("fetchWorkspaceDelete", asy
 });
 
 export const fetchCoreIntegrations = createAsyncThunk("fetchCoreIntegrations", async () => {
-    const res = await fetch(`${BASE_URL}/integrations`, {
+    const res = await fetch(`${BASE_URL}/api/integrations`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Accept": "application/json",
@@ -185,7 +185,7 @@ export const fetchCoreIntegrations = createAsyncThunk("fetchCoreIntegrations", a
 });
 
 export const fetchCoreElements = createAsyncThunk("fetchCoreElements", async () => {
-    const res = await fetch(`${BASE_URL}/elements`, {
+    const res = await fetch(`${BASE_URL}/api/elements`, {
         headers: {
             "Authorization": `Bearer ${localStorage.getItem("_token_")}`,
             "Accept": "application/json",
@@ -196,7 +196,7 @@ export const fetchCoreElements = createAsyncThunk("fetchCoreElements", async () 
 
 
 export const fetchCoreIntegrationInterface = createAsyncThunk("fetchCoreIntegrationInterface", async () => {
-    const res = await fetch(`${BASE_URL}/integrations/interface`, {
+    const res = await fetch(`${BASE_URL}/api/integrations/interface`, {
         headers: {
             "Accept": "application/json",
         }

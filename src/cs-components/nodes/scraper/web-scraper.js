@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
  
 export default ({ onUpdateNodes, params }) => {
 
-    const [url, setUrl] = useState(params ? params.url : "")
+    const [url, setUrl] = useState(params ? params.url ?? "" : "")
  
     useEffect(() => {
         onUpdateNodes({

@@ -16,7 +16,7 @@ import { History, PlusIcon, Sparkles, X } from "lucide-react";
 
 import '@xyflow/react/dist/style.css';
 import { Button } from '@/components/ui/button';
-import { CalendarSync, Layout, Play, Plus, Save, Webhook } from 'lucide-react';
+import { CalendarSync, Play, Plus, Save, Webhook } from 'lucide-react';
 import Link from 'next/link';
 import {
   Tooltip,
@@ -36,7 +36,6 @@ import {
 import List2 from '@/components/list';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCoreElements, fetchCoreIntegrationInterface, fetchCoreIntegrations, fetchCreateFlow, fetchFlow } from '../api';
-import CircleLogoImage from '@/cs-components/circle-logo-image';
 import CustomNode from '@/cs-components/custom-node';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import toast from 'react-hot-toast';
@@ -64,6 +63,7 @@ const AddNodeOnEdgeDrop = () => {
   const [name, setName] = useState();
   const [rfInstance, setRfInstance] = useState(null);
   const [flowUniqueId, setFlowUniqueId] = useState();
+  const [manualDeleted, setManualDeleted] = useState();
   const [createdFlow, setCreatedFlow] = useState();
   const [hasInterface, setHasInterface] = useState();
   const [viewPort, setViewPort] = useState({
@@ -76,6 +76,7 @@ const AddNodeOnEdgeDrop = () => {
   const [type] = useDnD();
   const { screenToFlowPosition } = useReactFlow();
   const [dropedNode, setDropedNode] = useState()
+  const [clickedNode, setClicked] = useState()
   const store = useStoreApi();
 
   const onDragOver = useCallback((event) => {
@@ -108,51 +109,111 @@ const AddNodeOnEdgeDrop = () => {
         }
       ])
 
+      setEdges(edges)
+
     },
-    [screenToFlowPosition, type, nodes, dropedNode,   ],
+    [screenToFlowPosition, type, nodes, dropedNode, edges],
   );
 
 
   useEffect(() => {
-    if (nodes.length == 0) {
-      setHasInterface(false)
-    }
-    if(nodes.length > 0){
-      let interfaceChecker = false
-      nodes.map( item => {
-        if(item.data.meta.slug == "interface"){
-          interfaceChecker = true
+
+    if (edges?.length || manualDeleted) {
+
+      const nodeMap = Object.fromEntries(nodes.map(node => [node.id, node]));
+      const inputsMap = Object.fromEntries(nodes.map(node => [node.id, []]));
+
+      edges.forEach(edge => {
+
+        const target = nodeMap[edge.target];
+        const source = nodeMap[edge.source];
+
+        if (!target || !source) return;
+
+        const { meta, params } = source.data;
+        const colors = meta.colors[meta.background];
+
+        if (meta.output_params === "dynamic") {
+          params?.fields.forEach(pr => {
+            inputsMap[target.id].push({
+              key: meta.id,
+              value: pr.label,
+              color: colors[600],
+              background: colors[100],
+              border: colors[500],
+            });
+          });
+        } else {
+          inputsMap[target.id].push({
+            key: meta.id,
+            value: meta.output_params,
+            color: colors[600],
+            background: colors[100],
+            border: colors[500],
+          });
         }
-      })
-      setHasInterface(interfaceChecker)
+      });
+
+      setNodes(prevNodes =>
+        prevNodes.map(node =>
+          inputsMap[node.id].length
+            ? { ...node, data: { ...node.data, inputs: inputsMap[node.id] } }
+            : { ...node, data: { ...node.data, inputs: [] } }
+        )
+      );
+
+      setManualDeleted(false)
     }
-  }, [nodes])
+
+  }, [edges, manualDeleted])
+
+  useEffect(() => {
+    if (clickedNode) {
+      const {
+        height,
+        width,
+        transform: [transformX, transformY, zoomLevel]
+      } = store.getState();
+
+      const zoomMultiplier = 1 / zoomLevel;
+
+      const centerX = -transformX * zoomMultiplier + (width * zoomMultiplier) / 2;
+      const centerY =
+        -transformY * zoomMultiplier + (height * zoomMultiplier) / 2;
+
+      setNodes((prevNodes) => [
+        ...prevNodes,
+        {
+          id: `${Math.random()}`,
+          type: 'reactComponent',
+          position: {
+            x: centerX,
+            y: centerY
+          },
+          data: {
+            meta: clickedNode,
+          }
+        }
+      ]);
+
+      setClicked(undefined)
+    }
+  }, [clickedNode])
+
+
+  useEffect(() => {
+    setHasInterface(nodes.some(n => n.data.meta.slug === "interface"));
+  }, [nodes]);
 
   const onAddInterface = () => dispatch(fetchCoreIntegrationInterface())
 
   const onSave = useCallback(() => {
-    if (rfInstance) {
-
-      setSubmitted(true)
-
-      let finalResult = rfInstance.toObject()
-
-      if (finalResult.nodes != undefined) {
-        finalResult.nodes.map(item => {
-          item.data.meta = item.data.meta.id
-          return item
-        })
-      }
-
-      dispatch(fetchCreateFlow({
-        pattern: finalResult,
-        id: flowUniqueId ?? "",
-        name
-      }))
-
-    }
+    if (!rfInstance) return;
+    setSubmitted(true);
+    const result = rfInstance.toObject();
+    result.nodes?.forEach((n) => { n.data.meta = n.data.meta.id; });
+    dispatch(fetchCreateFlow({ pattern: result, id: flowUniqueId ?? "", name }));
   }, [rfInstance, flowUniqueId, name]);
-
 
   useEffect(() => {
     dispatch(fetchCoreElements())
@@ -219,6 +280,21 @@ const AddNodeOnEdgeDrop = () => {
     [],
   );
 
+  const onNodesDelete = useCallback(
+    (deletedNodes) => {
+      setEdges((eds) =>
+        eds.filter(
+          (edge) =>
+            !deletedNodes.some(
+              (node) => edge.source === node.id || edge.target === node.id
+            )
+        )
+      );
+      setManualDeleted(true)
+    },
+    []
+  );
+
   useEffect(() => {
 
     if (window.location.href.includes("flow_id")) {
@@ -234,69 +310,74 @@ const AddNodeOnEdgeDrop = () => {
 
   }, [searchParams])
 
-  useEffect(() => {
-
-    if (submitted) {
-      if (flows.data && flows.data.length > 0) {
-        if (!flowUniqueId) {
-          router.push({
-            pathname: "/flows/create",
-            search: `?flow_id=${flows.data[0].unique_id}`
-          })
-        }
-        setCreatedFlow(flows.data[0])
-        toast.custom((t) => <CustomToast action="success" message="تغییرات با موفقیت ذخیره شد" />)
-        setSubmitted(false)
-      }
-    }
-
-    if (flows.flowData) {
-      if (flows.flowData.length > 0) {
-        setCreatedFlow(flows.flowData[0])
-        setName(flows.flowData[0].name)
-      }
-    }
-
-    if (!flows.flowData) {
-      setHasInterface(false)
-    }
-
-  }, [flows])
-
 
   useEffect(() => {
-    if (createdFlow && createdFlow.pattern) {
-      let dbNodes = []
-      let pattern = createdFlow.pattern
-      let hasInterface = false
-      pattern.nodes.map((item) => {
-        if (item.data.meta.slug == "interface") {
-          hasInterface = true
-        }
-        dbNodes.push({
-          id: item.id,
-          type: 'reactComponent',
-          position: { x: item.position.x, y: item.position.y },
-          data: {
-            meta: item.data.meta,
-            params: item.data.params,
-          }
-        })
-      })
-      setHasInterface(hasInterface)
-      setNodes(dbNodes)
-      setEdges(pattern.edges)
-      setViewPort(pattern.viewport)
-    }
-  }, [createdFlow])
+    if (!flows) return;
 
+    // Handle submitted case
+    if (submitted && flows.data?.length > 0) {
+      const firstFlow = flows.data[0];
+
+      // Redirect if it's a new flow
+      if (!flowUniqueId) {
+        router.push({
+          pathname: "/flows/create",
+          search: `?flow_id=${firstFlow.unique_id}`,
+        });
+      }
+
+      setCreatedFlow(firstFlow);
+      toast.custom(() => (
+        <CustomToast action="success" message="تغییرات با موفقیت ذخیره شد" />
+      ));
+      setSubmitted(false);
+    }
+
+    // Handle flowData (loaded from backend)
+    if (flows.flowData?.length > 0) {
+      const flow = flows.flowData[0];
+      setCreatedFlow(flow);
+      setName(flow.name);
+    } else if (flows.flowData === null) {
+      setHasInterface(false);
+    }
+  }, [flows, submitted, flowUniqueId, router]);
+
+
+
+  useEffect(() => {
+    if (!createdFlow?.pattern) return;
+
+    const { nodes: patternNodes, edges, viewport } = createdFlow.pattern;
+    let hasInterface = false;
+
+    const dbNodes = patternNodes.map((item) => {
+      if (item.data.meta.slug === "interface") {
+        hasInterface = true;
+      }
+      return {
+        id: item.id,
+        type: "reactComponent",
+        position: { x: item.position.x, y: item.position.y },
+        data: {
+          meta: item.data.meta,
+          params: item.data.params,
+        },
+      };
+    });
+
+    setHasInterface(hasInterface);
+    setNodes(dbNodes);
+    setEdges(edges);
+    setViewPort(viewport);
+  }, [createdFlow]);
 
   return (
     <div className='flex h-[calc(100vh-64px)] flex-col md:flex-row'>
       <div className='dndflow relative flex min-h-svh min-w-svw flex-col! overflow-hidden transition-all'>
         <div className=' w-full z-60 fixed top-0 ltr'>
           <div className=' flex justify-between py-2.5 px-6 items-center'>
-            <div className='flex relative p-2 gap-x-2 rounded-lg items-center bg-white border shadow'>
+            <div className='flex relative px-2 py-1.5 gap-x-2 rounded-lg items-center bg-white border shadow'>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button disabled={nodes && nodes.length == 0} className="bg-gradient-secondary cursor-pointer text-base hover:bg-gradient hover:text-white text-white" size="sm" variant="outline">
@@ -310,7 +391,7 @@ const AddNodeOnEdgeDrop = () => {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button onClick={onSave} disabled={nodes && nodes.length == 0} className="text-base hover:bg-orange-200 cursor-pointer hover:text-orange-600" size="sm" variant="outline">
+                  <Button onClick={onSave} disabled={nodes && nodes.length == 0} className="text-base bg-linear-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white hover:text-white cursor-pointer" size="sm" variant="outline">
                     <span>ذخیره</span>
                     <Save />
                   </Button>
@@ -333,7 +414,7 @@ const AddNodeOnEdgeDrop = () => {
                 <TooltipTrigger asChild>
                   <div onClick={() => {
                     setVisibleTools(true)
-                  }} className=' absolute left-0 -bottom-14 cursor-pointer flex items-center justify-center text-white rounded-full w-10 h-10 bg-gradient'>
+                  }} className=' absolute left-0 -bottom-20 cursor-pointer flex items-center justify-center text-white rounded-full w-14 h-14 bg-gradient'>
                     <PlusIcon />
                   </div>
                 </TooltipTrigger>
@@ -343,7 +424,7 @@ const AddNodeOnEdgeDrop = () => {
               </Tooltip>
             </div>
 
-            <div className='flex relative w-xl p-2 rounded-lg items-center bg-white border shadow justify-between'>
+            <div className='flex relative w-xl px-2 py-1.5 rounded-lg items-center bg-white border shadow justify-between'>
               <div className='flex gap-x-2'>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -373,7 +454,7 @@ const AddNodeOnEdgeDrop = () => {
                   {name ? <InlineEdit value={name} onChange={setName} className="rtl" /> : <SpinnerLoader />}
                 </div>
                 <Link href="/flows">
-                    <img className="object-contain w-10" src="/images/fav.png" />
+                  <img className="object-contain w-10" src="/images/fav.png" />
                 </Link>
               </div>
             </div>
@@ -402,7 +483,7 @@ const AddNodeOnEdgeDrop = () => {
                     </div>
                     <div className={`bg-white h-screen border shadow  rounded-lg min-w-sm z-50`}>
                       <ScrollArea className="h-[750px] rtl">
-                        <List2 setDropedNode={setDropedNode} loading={integrations.isLoading} items={integrations.data} />
+                        <List2 setDropedNode={setDropedNode} setClicked={setClicked} loading={integrations.isLoading} items={integrations.data} />
                         <Button variant="outline" onClick={() => {
                           setVisibleTools(false)
                         }} asChild size="icon" className="size-8 absolute -left-10 top-0 p-1 cursor-pointer text-gray-500">
@@ -422,6 +503,7 @@ const AddNodeOnEdgeDrop = () => {
                   edges={edges}
                   onNodesChange={onNodesChange}
                   onInit={setRfInstance}
+                  onNodesDelete={onNodesDelete}
                   nodeTypes={nodeTypes}
                   onEdgesChange={onEdgesChange}
                   onConnect={onConnect}

@@ -3,7 +3,6 @@ import { store } from "../store"
 import { Provider } from 'react-redux'
 import { Toaster } from 'react-hot-toast';
 import NProgress from 'nprogress'
-import 'nprogress/nprogress.css'
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 

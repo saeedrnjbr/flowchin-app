@@ -5,22 +5,23 @@ import { fetchUserCurrent } from "@/pages/api"
 import { useRouter } from "next/navigation"
 
 export default function AclMiddleware({ children }) {
-
-    const dispatch = useDispatch()
-    const users = useSelector(state => state.users)
-    const router = useRouter()
+    const dispatch = useDispatch();
+    const users = useSelector((state) => state.users);
+    const router = useRouter();
 
     useEffect(() => {
-        dispatch(fetchUserCurrent())
-    }, [])
+        dispatch(fetchUserCurrent());
+    }, [dispatch]);
 
-    if (users.currentError == undefined) {
-        return <Spinner />
+    useEffect(() => {
+        if (users.currentError) {
+            router.push("/account");
+        }
+    }, [users.currentError, router]);
+
+    if (users.currentError === undefined) {
+        return <Spinner />;
     }
 
-    if (users.currentError) {
-        return router.push("/account")
-    }
-
-    return children
+    return children;
 }

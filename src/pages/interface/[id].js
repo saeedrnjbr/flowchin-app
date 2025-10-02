@@ -29,8 +29,6 @@ export default () => {
         return <Spinner />
     }
 
-    console.log(userInterface)
-
     return <div className="container h-24 bg-red-100 mx-auto">
 
     </div>

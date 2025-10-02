@@ -1,5 +1,5 @@
 import DashboardLayout from "@/cs-components/dashboard-layout"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { BASE_URL, fetchDeleteFlow, fetchDuplicateFlow, fetchFlows, fetchUpdateFlow, fetchUpdateFlowWorkspace, fetchWorkspaces } from "../api"
 import { ChartArea, CopyCheck, Edit, Folder, FolderPlus, MoreHorizontal, MoreVertical, Package, PackageCheck, Plus, Trash, WorkflowIcon } from "lucide-react"
@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+
 import { NumericFormat } from 'react-number-format';
 
 
@@ -78,23 +79,20 @@ export default function () {
   const [flowCover, setFlowCover] = useState()
   const workspaces = useSelector(state => state.workspaces)
 
-  const updateFlowWorkspace = workspace => {
+  const updateFlowWorkspace = useCallback((workspace) => {
+    if (!selectedFlow) return
     setSubmitted(true)
     dispatch(fetchUpdateFlowWorkspace({
       workspace_id: workspace.id,
-      id: selectedFlow.unique_id ?? ""
+      id: selectedFlow.unique_id
     }))
-  }
-
+  }, [selectedFlow])
 
   useEffect(() => {
     if (selectedFlow) {
-      formik.setFieldValue("price", selectedFlow.price)
-      formik.setFieldValue("discount", selectedFlow.discount)
-      formik.setFieldValue("description", selectedFlow.description)
-      formik.setFieldValue("icon", selectedFlow.icon)
-      formik.setFieldValue("content", selectedFlow.content)
-      formik.setFieldValue("has_marketplace", selectedFlow.has_marketplace)
+      Object.entries(selectedFlow).forEach(([key, val]) => {
+        if (formik.values.hasOwnProperty(key)) formik.setFieldValue(key, val)
+      })
     }
   }, [selectedFlow])
 
@@ -123,44 +121,47 @@ export default function () {
   }, [])
 
 
-  const handleDeleteFlow = (id) => {
+  const handleDeleteFlow = useCallback((id) => {
     setSubmitted(true)
     dispatch(fetchDeleteFlow({ id }))
-  }
+  }, [dispatch])
 
-  const handleDuplicateFlow = (id) => {
+  const handleDuplicateFlow = useCallback((id) => {
     setSubmitted(true)
     dispatch(fetchDuplicateFlow({ id }))
-  }
+  }, [dispatch])
 
-  const handleLogoUpload = (file) => {
+  const handleLogoUpload = useCallback((file) => {
     formik.setFieldValue("icon", file.file)
     setFlowCover(file)
-  }
+  }, [formik])
 
-  if ((flows.flowDeleteData.length > 0 || flows.flowDuplicateData.length > 0 || flows.flowUpdateData.length > 0) && submitted) {
-    setSubmitted(false)
-    dispatch(fetchFlows())
-    setUpdateFlowOpen(false)
-    setUpdateStoreFlowOpen(false)
-    toast.custom((t) => <CustomToast action="success" message="عملیات با موفقیت انجام شد" />)
-  }
+  useEffect(() => {
 
-  if (flows.flowUpdateWorkspaceData.length > 0 && submitted) {
-    setSubmitted(false)
-    dispatch(fetchFlows())
-    setUpdateFlowOpen(false)
-    setUpdateStoreFlowOpen(false)
-    dispatch(fetchWorkspaces())
-    toast.custom((t) => <CustomToast action="success" message="عملیات با موفقیت انجام شد" />)
-  }
+    if (!submitted) return
 
+    if (flows.flowUpdateError) {
+      toast.custom(() => <CustomToast action="error" message={flows.message} />)
+      setSubmitted(false)
+      return
+    }
 
-  if (submitted && flows.flowUpdateError) {
-    toast.custom((t) => <CustomToast action="error" message={flows.message} />)
-    setSubmitted(false)
-  }
+    if (
+      flows.flowDeleteData.length > 0 ||
+      flows.flowDuplicateData.length > 0 ||
+      flows.flowUpdateData.length > 0 ||
+      flows.flowUpdateWorkspaceData.length > 0
+    ) {
+      toast.custom(() => <CustomToast action="success" message="عملیات با موفقیت انجام شد" />)
+      dispatch(fetchFlows())
+      dispatch(fetchWorkspaces())
+      setSubmitted(false)
+      setUpdateFlowOpen(false)
+      setUpdateStoreFlowOpen(false)
+    }
+  }, [submitted, flows])
 
+  const hasFlows = useMemo(() => flows.flowsData?.length > 0, [flows.flowsData])
 
   if (flows.flowsIsLoading) {
     return <DashboardLayout>
@@ -319,7 +320,7 @@ export default function () {
       </div>
     </DashboardHeader>
 
-    {flows.flowsData && flows.flowsData.length > 0 && <Table className="border">
+    {hasFlows && <Table className="border">
       <TableHeader>
         <TableRow>
           <TableHead className="text-right text-gray-500 text-base">عنوان</TableHead>
@@ -431,7 +432,7 @@ export default function () {
                     <TooltipTrigger asChild>
                       <DialogTrigger asChild>
                         <div className="relative">
-                          {flow.has_marketplace == 1 && <PackageCheck className={flow.has_marketplace == 1 ? "text-indigo-500 cursor-pointer" : "cursor-pointer"} onClick={() => {
+                          {flow.has_marketplace == 1 && <PackageCheck className={flow.has_marketplace == 1 ? "text-teal-500 cursor-pointer" : "cursor-pointer"} onClick={() => {
                             setSelectedFlow(flow)
                             setUpdateStoreFlowOpen(true)
                           }} />}
@@ -463,7 +464,7 @@ export default function () {
                             <Label htmlFor="content">توضیح معرفی</Label>
                             <Input defaultValue={formik.values.content} onChange={formik.handleChange} id="content" />
                           </div>
-                         
+
                           <div className="grid gap-3">
                             <Label htmlFor="price">قیمت (ریال)</Label>
                             <NumericFormat thousandSeparator onValueChange={(value) => formik.setFieldValue("price", value.floatValue)} defaultValue={formik.values.price} customInput={Input} />
@@ -476,7 +477,7 @@ export default function () {
                             <Label htmlFor="description">توضیحات</Label>
                             <Textarea className="min-h-32" defaultValue={formik.values.description} onChange={formik.handleChange} id="description" />
                           </div>
-                           <UppyUploader onUploaded={handleLogoUpload} id="dropzone-logo">
+                          <UppyUploader onUploaded={handleLogoUpload} id="dropzone-logo">
                             <div style={{ background: `url(${flowCover?.file_url})` }} className="text-xs uppy-centerize bg-cover bg-center bg-no-repeat flex border-2 border-indigo-500 border-dashed  h-32 w-32  cursor-pointer items-center justify-center rounded-lg">
                               <span className="text-base text-center">آپلود لوگو</span>
                             </div>
@@ -525,8 +526,7 @@ export default function () {
     </Table>
     }
 
-    {
-      flows.flowsData && flows.flowsData.length == 0 && <div className=" text-gray-200 flex items-center space-y-2 justify-center flex-col text-base border-slate-200 py-5 rounded-lg">
+    {flows.flowsData && flows.flowsData.length == 0 && <div className=" text-gray-200 flex items-center space-y-2 justify-center flex-col text-base border-slate-200 py-5 rounded-lg">
         <WorkflowIcon size={50} />
         <span className="text-gray-400  text-lg">فرآیندی تعریف نشده است</span>
       </div>

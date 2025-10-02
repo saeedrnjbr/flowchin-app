@@ -33,7 +33,7 @@ export default ({ onUpdateNodes, params }) => {
                     </div>
                     <div className="gap-3 grid">
                         <Label className=" text-xs">مقدار پیش‌فرض</Label>
-                        <Input value={input.value} onChange={(e) => handleUpdateArray   (i, "value", e.target.value, setInputs)} placeholder="مقدار پیش‌فرض برای فیلد را وارد نمایید" className='rtl link-font bg-white' type="text" />
+                        <Input value={input.value} onChange={(e) => handleUpdateArray(i, "value", e.target.value, setInputs)} placeholder="مقدار پیش‌فرض برای فیلد را وارد نمایید" className='rtl link-font bg-white' type="text" />
                     </div>
                 </div>
             </div>

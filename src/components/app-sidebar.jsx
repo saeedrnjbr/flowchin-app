@@ -125,7 +125,7 @@ export function AppSidebar({
 }) {
   return (
     <Sidebar side="right" className="sidebar-bg" variant="inset" {...props}>
-      <SidebarHeader className="sidebar-bg pb-5">
+      <SidebarHeader className="sidebar-bg py-5">
         <SidebarMenu className="rounded-l-2xl">
           <SidebarMenuItem>
             <Link href="/" className="flex justify-center items-center gap-2 text-center">

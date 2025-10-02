@@ -26,7 +26,6 @@ import InlineEdit from "../inline-edit"
 import { Button } from "@/components/ui/button"
 import FormViewer from "../form-viewer"
 import UppyUploader from "../uppy-uploader";
-import { useSearchParams } from "next/navigation";
 
 
 function getData(prop) {
@@ -248,7 +247,7 @@ export default ({ onUpdateNodes, meta, params, handleDelete }) => {
     );
 
     return <>
-        <NodeToolbar>
+        <NodeToolbar className='pb-3' position={Position.Top}>
             <div className="flex gap-2 flex-wrap">
                 <div className="divide-x divide-muted-foreground text-black ">
                     <Button onClick={handleDelete} size="sm" className="rounded-none hover:bg-gray-100 cursor-pointer bg-white text-red-400 font-bold first:rounded-l-md last:rounded-r-md border-l border border-gray-200">
@@ -266,7 +265,7 @@ export default ({ onUpdateNodes, meta, params, handleDelete }) => {
                 </div>
             </div>
         </NodeToolbar>
-        <div className=" noding rounded-xl">
+        <div className=" noding relative group rounded-xl">
             <div className="bg-white shadow-sm shadow-black/25 text-xs min-w-lg rounded-xl rtl py-1">
                 <div className="flex flex-col space-y-2 relative">
                     <Dialog onOpenChange={() => setShowDialog(false)} open={showDialog}>
@@ -293,7 +292,7 @@ export default ({ onUpdateNodes, meta, params, handleDelete }) => {
                                                 </UppyUploader>
                                                 <UppyUploader onUploaded={handleIconUpload} id="dropzone-icon">
                                                     <div style={{ background: icon != null ? `url(${icon})` : "#FFF" }} className=" absolute  uppy-centerize right-6 -bottom-8 flex h-24 w-24  z-50 cursor-pointer items-center justify-center rounded-full bg-white hover:bg-muted shadow-md ">
-                                                       {icon == null ?  <span>انتخاب آیکون</span> : "" } 
+                                                        {icon == null ? <span>انتخاب آیکون</span> : ""}
                                                     </div>
                                                 </UppyUploader>
                                             </div>
@@ -334,6 +333,16 @@ export default ({ onUpdateNodes, meta, params, handleDelete }) => {
                             <CopySlash className={`absolute left-3 top-3.5 ${copied ? "text-white" : "text-gray-500"}`} size={16} />
                         </div>
                     </div>
+                </div>
+            </div>
+            <div className='w-58 outputViewer bg-white rtl opacity-0 transform -translate-x-4
+                  group-hover:opacity-100 group-hover:translate-x-0
+                  transition-all duration-300 delay-200 text-[10px] flex-col absolute px-2 py-3 rounded-xl border bottom-0 -right-62 shadow-sm'>
+                <span className=' font-bold block pb-1'>خروجی {meta.output_params?.split("-").length}</span>
+                <div className='flex flex-wrap gap-x-1'>
+                    {fields.map((field, p) => {
+                        return <span key={p} className='border flex items-center justify-center px-1 font-extrabold  rounded-xl' style={{ background: meta.colors[meta.background][100], color: meta.colors[meta.background][600], borderColor: meta.colors[meta.background][500] }}>{field.label}</span>
+                    })}
                 </div>
             </div>
         </div>

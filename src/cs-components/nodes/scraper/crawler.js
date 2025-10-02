@@ -5,8 +5,8 @@ import { useEffect, useState } from "react"
 
 export default ({ onUpdateNodes, params }) => {
 
-    const [url, setUrl] = useState(params ? params.url : "")
-    const [depth, setDepth] = useState(params ? params.depth : "")
+    const [url, setUrl] = useState(params ? params.url ?? "" : "")
+    const [depth, setDepth] = useState(params ? params.depth : 1)
 
     useEffect(() => {
         onUpdateNodes({
@@ -22,7 +22,7 @@ export default ({ onUpdateNodes, params }) => {
         </div>
         <div className="gap-3 grid">
             <Label className=" font-bold  text-xs" htmlFor="url">عمق جستجو</Label>
-            <Input value={depth} className='ltr link-font' onChange={(e) => setDepth(e.target.value)} type="text" id="url" />
+            <Input value={depth} className=' link-font' onChange={(e) => setDepth(e.target.value)} type="text" id="url" />
         </div>
     </div>
 }

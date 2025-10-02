@@ -8,7 +8,7 @@ import {
 import { useFormik } from "formik";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserCurrent, fetchUserLogin, fetchUserVerify } from "@/pages/api";
+import { BASE_URL, fetchUserCurrent, fetchUserLogin, fetchUserVerify } from "@/pages/api";
 import toast from "react-hot-toast";
 import Logo from "@/cs-components/logo";
 import { useRouter } from "next/navigation";
@@ -20,7 +20,6 @@ import Link from "next/link";
 
 
 export default function Account() {
-
 
   const dispatch = useDispatch()
   const [form, setForm] = useState("login")
@@ -38,21 +37,18 @@ export default function Account() {
 
   const login = (event) => {
     event.preventDefault();
-    let newwindow = window.open("http://localhost:8000/google-services/redirect", "google-oauth", 'height=500,width=500');
+    let newwindow = window.open(`${BASE_URL}/google-services/redirect`, "google-oauth", 'height=500,width=500');
     if (window.focus) { newwindow.focus() }
     return false;
   }
 
   useEffect(() => {
-
     window.addEventListener("message", function (event) {
       if (typeof (event.data) === "string") {
-        toast.custom((t) => <CustomToast action="success" message="ورود شما موفقیت آمیز بود" />)
         localStorage.setItem("_token_", event.data)
         router.push("/dashboard")
       }
     });
-
   }, [])
 
   const loginFormik = useFormik({

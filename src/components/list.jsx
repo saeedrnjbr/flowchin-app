@@ -2,7 +2,7 @@ import { useDnD } from "@/cs-components/dnd-context";
 import { ArrowRight, ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export default ({ items, loading = false, title = "", setDropedNode }) => {
+export default ({ items, loading = false, title = "", setDropedNode, setClicked }) => {
 
     const [depth, setDepth] = useState(0)
     const [action, setAction] = useState("inc")
@@ -11,7 +11,7 @@ export default ({ items, loading = false, title = "", setDropedNode }) => {
     const [listItems, setListItems] = useState()
     const [_, setType] = useDnD();
 
-    const IntegrationItem = ({ item }) => <div className="rtl bg-white p-2 px-4 cursor-pointer">
+    const IntegrationItem = ({ item, onClick }) => <div onClick={ () => onClick(item)} className="rtl bg-white p-2 px-4 cursor-pointer">
         <div className="order-2 w-full flex items-center gap-2 md:order-none">
             <span style={{ background: item.colors[item.background][100] }} className={`flex p-3 shrink-0 border items-center justify-center rounded-md`}>
                 <img className="w-7" src={item.icon_url} />
@@ -45,6 +45,9 @@ export default ({ items, loading = false, title = "", setDropedNode }) => {
             setListItems(item.children)
             setSelectedNav(item)
             setDepth((prevValue) => prevValue + 1)
+        }
+        if(!item.children){
+            setClicked(item)
         }
     }
 
@@ -179,12 +182,12 @@ export default ({ items, loading = false, title = "", setDropedNode }) => {
                     {listItems.map((item, index) => {
                         if (item.type == "core" && item.slug != "interface") {
                             if (item.slug == null) {
-                                return <div onClick={() => handleItemClick(item)} key={index} >
-                                    <IntegrationItem item={item} />
+                                return <div  key={index} >
+                                    <IntegrationItem  onClick={handleItemClick} item={item} />
                                 </div>
                             } else {
                                 return <div onDragStart={(event) => onDragStart(event, 'input', item)} draggable key={index} >
-                                    <IntegrationItem item={item} />
+                                    <IntegrationItem  onClick={handleItemClick} item={item} />
                                 </div>
                             }
                         }
@@ -195,12 +198,12 @@ export default ({ items, loading = false, title = "", setDropedNode }) => {
                     {listItems.map((item, index) => {
                         if (item.type == "tools") {
                             if (item.slug == null) {
-                                return <div onClick={() => handleItemClick(item)} key={index} >
-                                    <IntegrationItem item={item} />
+                                return <div key={index} >
+                                    <IntegrationItem onClick={handleItemClick} item={item} />
                                 </div>
                             } else {
                                 return <div onDragStart={(event) => onDragStart(event, 'input', item)} draggable key={index} >
-                                    <IntegrationItem item={item} />
+                                    <IntegrationItem onClick={handleItemClick} item={item} />
                                 </div>
                             }
                         }
